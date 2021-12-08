@@ -1,0 +1,252 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Nov  4 16:09:38 2021
+
+@author: GLA
+"""
+
+# TO DO:
+# Se connecter aux 4 serveurs (192.168.0.21~24)
+# Définir le cycle des requêtes
+# Regrouper les données dans un tableu unique
+# Créer une interface qt d'affichage du tableau
+# Mettre à jour périodiquement ce tableauDi
+
+from PyQt5.QtCore import *
+# from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
+from ModbusWindow import Ui_ModbusWindow
+from TMMSNetwork_modbus import TMMSClientSerial, TMMSClientEthernet
+from handler import ETL
+
+from lxml import etree, objectify
+from io import BytesIO
+import xml.etree.ElementTree as ET
+
+import os
+import sys
+import threading
+import numpy as np
+import pandas as pd
+import time
+
+
+class Struct:
+    pass
+
+class FileManager:
+    def __init__(self, data):
+        self.run_path = os.getcwd()
+        print(self.run_path)
+        self.folder = os.path.realpath(os.path.join(self.run_path, './data'))
+        # self.filename = os.path.realpath(os.path.join(self.run_path, './data/DeltaLuxCryo_measures.dat'))
+        self.filename = os.path.realpath(os.path.join(self.run_path, './data/storage_test.dat'))
+        self.data = data
+        self.create_file()
+        
+    def create_file(self):
+        N_sensors = 84
+        Tanks = ['702-', '703-']
+        Locations = [str(i+1) for i in range(7)]
+        Axis = ['H', 'V', 'R']
+        Red = ['p', 's']
+        if os.path.exists(self.filename):
+            os.remove(self.filename)
+        with open(self.filename, 'w+') as f:
+            f.write(
+                '"TOA5","TBM2a-STA1","CR300","20544","CR300.Std.09.02","CPU:TBM2a-STA1_V05.CR300","29960","RawData"\n')
+            f.write('"TIMESTAMP","RECORD"')
+            for r in Red:
+                for tank in Tanks:
+                    for loc in Locations:
+                        for ax in Axis:
+                            f.write(',"0100-XE-' + tank + ax +
+                                    loc + r + ' Displacement"')
+            for r in Red:
+                for tank in Tanks:
+                    for loc in Locations:
+                        for ax in Axis:
+                            f.write(',"0100-XE-' + tank +
+                                    ax + loc + r + ' Status"')
+            f.write('\n"TS","RN"')
+            for k in range(N_sensors):
+                f.write(',"mm","-"')
+            f.write('\n')
+            f.write('"",""')
+            for k in range(2, N_sensors+2):
+                f.write(',"Smp","Smp"')
+            f.write('\n')
+      
+    def update_file(self, data, rec_nb):
+        N_sensors=84
+        with open(self.filename, 'a') as f:
+            f.write('"' + time.strftime("%Y-%m-%d %H:%M:%S",
+                    time.localtime()) + '"')
+            f.write(',' + str(rec_nb))
+            for k in range(N_sensors):
+                D = data[k][2]
+                f.write("," + str(D))
+            for k in range(N_sensors):
+                status = data[k+84][2]
+                f.write("," + str(int(status)))
+            f.write("\n")
+
+class ModbusCommunication:
+    def __init__(self):
+        self._type_dict = {'int': int,
+                           'str': str}
+        addresses = self.load('parameters/matching_table_modbus_default.xml')
+        nof_addresses = len(addresses.__dict__.items())
+        self.address_list = pd.DataFrame([[0, '', 0, '']] * nof_addresses,
+                                         index=[str(i) for i in range(1, nof_addresses+1)],
+                                         columns=['address', 'name', 'slave', 'datatype'])
+        i = 0
+        for attr, value in addresses.__dict__.items():
+            self.address_list.iloc[i] = [int(attr.split('_')[1]), value.tag, value.slave, value.datatype]
+            i += 1
+        self.slaves = {1: 'COM1', 2: 'COM2'}
+        self.cabinets = {}
+        self.cabinets['AIR'] = Struct()
+        self.cabinets['NETWORK'] = Struct()
+        self.cabinets['AIR'].data = [
+            [int(self.address_list.iloc[i, 0]), self.address_list.iloc[i, 1], 0] for i in range(0, nof_addresses)]
+        self.cabinets['NETWORK'].data = [
+            [40000 + i, 'Data ' + str(i), np.random.rand()] for i in range(1, 21)]
+        self.sockets = {1: TMMSClientEthernet('192.168.0.21', 5020),
+                        2: TMMSClientEthernet('192.168.0.22', 5020)}
+        # self.file_manager = FileManager(self.cabinets['AIR'].data)
+
+    def run_requests(self):
+        for i, row in enumerate(self.address_list.iterrows()):
+            value, status = self.sockets[row[1].loc['slave']].request(
+                row[1].loc['address'], row[1].loc['datatype'])
+            if status:
+                self.cabinets['AIR'].data[i][2] = value
+            else:
+                self.cabinets['AIR'].data[i][2] = 0
+        self.cabinets['NETWORK'].data = [
+            [40000 + i, 'Data ' + str(i), np.random.rand()] for i in range(1, 21)]
+
+    def load(self, xmlFile):
+        with open(xmlFile) as fobj:
+            xml = fobj.read()
+        root = etree.fromstring(xml)
+        addess_list = Struct()
+        for elem in root.getchildren():
+            [name, Elem] = self.get_child(elem)
+            setattr(addess_list, name, Elem)
+        return(addess_list)
+
+    def get_child(self, elem, types=False, dictionary=False):
+        if len(elem.getchildren()) == 0:
+            return elem.tag, self._type_dict[elem.get('type')](elem.get('value'))
+        else:
+            Elem_struct = Struct()
+            for el in elem.getchildren():
+                [name, Elem] = self.get_child(el)
+                setattr(Elem_struct, name, Elem)
+            return elem.get('name'), Elem_struct
+
+
+class MainWindow(QMainWindow, Ui_ModbusWindow):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setupUi(self)
+        self.modbus = ModbusCommunication()
+        self.file_manager = FileManager(self.modbus.cabinets['AIR'].data)
+        # Init tables
+        header_1 = ['Address', 'Name', 'Value']
+        data_1 = self.modbus.cabinets['AIR'].data
+        header_2 = ['Address', 'Name', 'Value']
+        data_2 = self.modbus.cabinets['NETWORK'].data
+        self.tableView_1.model = TableModel(data_1, header_1)
+        self.tableView_2.model = TableModel(data_2, header_2)
+        # self.tableView.reset() # commented 05/11: usefull ?
+        self.tableView_1.setModel(self.tableView_1.model)
+        self.tableView_2.setModel(self.tableView_2.model)
+
+        self.rec_nb=0
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.on_timer)
+        self.timer.start(1000)
+        
+    def on_timer(self):
+        # threading.Thread(target=self.modbus.run_requests).start()
+        self.modbus.run_requests()
+        t = time.strftime('[%y-%m-%d %H-%M-%S]')
+        print(t + ' Data updated')
+        self.rec_nb += 1
+        self.file_manager.update_file(self.modbus.cabinets['AIR'].data, self.rec_nb)
+        # threading.Thread(target=ETL, args=(self.file_manager.folder, )).start()
+        ETL(self.file_manager.folder)
+        self.refresh()
+        t = time.strftime('[%y-%m-%d %H-%M-%S]')
+        print(t + ' Data updated')
+        
+
+    def refresh(self):
+        # Refresh Tables
+        data_1 = self.modbus.cabinets['AIR'].data
+        data_2 = self.modbus.cabinets['NETWORK'].data
+        self.tableView_1.model.update(data_1)
+        self.tableView_1.reset()
+        self.tableView_2.model.update(data_2)
+        self.tableView_2.reset()
+        # self.file_manager=FileManager.update_file(self)
+        # self.rec_nb=self.rec_nb+1
+
+class TableModel(QAbstractTableModel):
+    def __init__(self, arraydata, header):
+        super(TableModel, self).__init__()
+        self.arraydata = arraydata
+        self.header = header
+
+    def data(self, index, role):
+        if role == Qt.DisplayRole:
+            # See below for the nested-list data structure.
+            # .row() indexes into the outer list,
+            # .column() indexes into the sub-list
+            if len(self.arraydata[index.row()]) > index.column():
+                return self.arraydata[index.row()][index.column()]
+            else:
+                return
+
+    def headerData(self, col, orientation, role):
+        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
+            return self.header[col]
+        return None
+
+    def update(self, new_data):
+        self.arraydata = new_data
+        self.layoutAboutToBeChanged.emit()
+        self.dataChanged.emit(self.createIndex(0, 0), self.createIndex(
+            self.rowCount(0), self.columnCount(0)))
+        self.layoutChanged.emit()
+
+    def rowCount(self, index):
+        # The length of the outer list.
+        return len(self.arraydata)
+
+    def columnCount(self, index):
+        # The following takes the first sub-list, and returns
+        # the length (only works if all rows are an equal length)
+        if len(self.arraydata) != 0:
+            return len(self.arraydata[0])
+        else:
+            return(0)
+
+
+if __name__ == "__main__":
+    display = False
+    thm = False
+    if len(sys.argv) > 1:
+        for arg in sys.argv[1:]:
+            if arg == 'display':
+                display = True
+            if arg == 'THM':
+                thm = True
+    app = QApplication([])
+    win = MainWindow()
+    if d:
+        win.show()
+    app.exec_()
