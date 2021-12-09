@@ -61,7 +61,7 @@ class FileManager:
                     for loc in Locations:
                         for ax in Axis:
                             f.write(',"0100-XE-' + tank + ax +
-                                    loc + r + ' Displacement"')
+                                    loc + r + ' Movement"')
             for r in Red:
                 for tank in Tanks:
                     for loc in Locations:
@@ -149,11 +149,12 @@ class ModbusCommunication:
 
 
 class MainWindow(QMainWindow, Ui_ModbusWindow):
-    def __init__(self, parent=None):
+    def __init__(self, thm, parent=None):
         super().__init__(parent)
         self.setupUi(self)
         self.modbus = ModbusCommunication()
         self.file_manager = FileManager(self.modbus.cabinets['AIR'].data)
+        self.refresh_thm = thm
         # Init tables
         header_1 = ['Address', 'Name', 'Value']
         data_1 = self.modbus.cabinets['AIR'].data
@@ -178,7 +179,8 @@ class MainWindow(QMainWindow, Ui_ModbusWindow):
         self.rec_nb += 1
         self.file_manager.update_file(self.modbus.cabinets['AIR'].data, self.rec_nb)
         # threading.Thread(target=ETL, args=(self.file_manager.folder, )).start()
-        ETL(self.file_manager.folder)
+        if self.refresh_thm:
+            ETL(self.file_manager.folder)
         self.refresh()
         t = time.strftime('[%y-%m-%d %H-%M-%S]')
         print(t + ' Data updated')
@@ -237,7 +239,7 @@ class TableModel(QAbstractTableModel):
 
 
 if __name__ == "__main__":
-    display = False
+    display = True
     thm = False
     if len(sys.argv) > 1:
         for arg in sys.argv[1:]:
@@ -246,7 +248,7 @@ if __name__ == "__main__":
             if arg == 'THM':
                 thm = True
     app = QApplication([])
-    win = MainWindow()
+    win = MainWindow(thm)
     if display:
         win.show()
     app.exec_()

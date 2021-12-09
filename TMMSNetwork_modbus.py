@@ -5,9 +5,15 @@ Created on Fri Oct 15 10:44:47 2021
 @author: GLA
 """
 
+import logging
+logging.basicConfig()
+log = logging.getLogger()
+log.setLevel(logging.DEBUG)
+
+
 from pymodbus.server.asynchronous import StartTcpServer, StartSerialServer, StopServer
 from pymodbus.client.sync import ModbusTcpClient, ModbusSerialClient
-from pymodbus.datastore import ModbusSequentialDataBlock
+from pymodbus.datastore import ModbusSequentialDataBlock, ModbusSparseDataBlock
 from pymodbus.datastore import ModbusSlaveContext, ModbusServerContext
 from twisted.internet.serialport import SerialPort
 
@@ -21,8 +27,8 @@ class Struct:
 class TMMSModbus:
     def __init__(self):
         self._type_dict = Struct()
-        self._type_dict.encode = {'float32': self.float32toBin, 'boolean':self.BooltoBin}
-        self._type_dict.decode = {'float32': self.Bintofloat32, 'boolean':self.BintoBool}
+        self._type_dict.encode = {'float32': self.float32toBin, 'boolean':self.BooltoBin, 'byte':self.BintoByte, 'uint32':int}
+        self._type_dict.decode = {'float32': self.Bintofloat32, 'boolean':self.BintoBool, 'byte':self.BytetoBin, 'uint32':self.BintoInt}
         
     def encode(self, value, datatype):
         return(self._type_dict.encode[datatype](value))
@@ -42,19 +48,37 @@ class TMMSModbus:
     
     def BooltoBin(self, value):
         return(int(value))
-        # return(struct.unpack('b', value))
+        # return(struct.pack('b', value))
     
     def BintoBool(self, value):
         if type(value[0]) == bytes:
             return(bool(struct.unpack('b', value[0])[0]))
         else:
             return(bool(value[0]))
+        
+    def BytetoBin(self, value):
+        value = value[0]
+        retValue = []
+        for i in range(16):
+            retValue.insert(0, value & 0x01)
+            value = value >> 1
+        return(retValue)
     
+    def BintoByte(self, values):
+        retValue = 0
+        for i, val in enumerate(values):
+            retValue += val << (16-(i+1))
+        return(retValue)
+    
+    def BintoInt(self, value):
+        return(value[0])
+           
 class TMMSModbusClient(TMMSModbus):
     def __init__(self):
         TMMSModbus.__init__(self)
         self.dataframe = []
-        self.nof_words = {'float32':2, 'boolean':1}
+        self.nof_words = {'float32':2, 'boolean':1, 'uint32':1, 'byte':1}
+        self.connected = True
 
     # def connect(self):
     #     self.socket.connet()
@@ -62,22 +86,23 @@ class TMMSModbusClient(TMMSModbus):
     # def close(self):
     #     self.socket.close()
     
-    def request(self, address, datatype):
-        try:
-            req = self.socket.read_holding_registers(address, self.nof_words[datatype])
-            if not req.isError():
-                value = self.decode(req.registers, datatype)
-                status = True
+    def read(self, adresses, datatype, slave=0):
+        requests = {}
+        status = {}
+        for address in adresses:
+            request = self.socket.read_holding_registers(address, self.nof_words[datatype], unit=slave)
+            if not request.isError():
+                requests[address] = self.decode(request.registers, datatype)
+                status[address] = True
             else:
-                print('error')
-                print(address)
-                value = 0
-                status = False
-        except:
-            value = 0
-            status = False
-        return(value, status)
-
+                requests[address] = None
+                status[address] = True
+        return(requests, status)
+    
+    def write(self, address, value, slave=0):
+        request = self.socket.write_register(address, value, unit=slave)
+        status = not request.isError()
+        return(request, status)
 
 class TMMSModbusEthernet(TMMSModbus):
     def __init__(self, IPaddress, port):
@@ -104,7 +129,7 @@ class TMMSClientSerial(TMMSModbusSerial, TMMSModbusClient):
     def __init__(self, port):
         TMMSModbusSerial.__init__(self, port)
         TMMSModbusClient.__init__(self)
-        self.socket = ModbusSerialClient(port=self.port, defer_reactor_run=True, stopbits=1, bytesize=8, baudrate=9600, timeout=1)
+        self.socket = ModbusSerialClient(port=self.port, stopbits=1, bytesize=8, baudrate=9600, timeout=1)
         self.socket.connect()
         
     def close(self):

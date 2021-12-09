@@ -419,424 +419,454 @@
 		<slave value='2' type='int' min='0' max='10' />
 		<datatype value='float32' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40169'>
+	<Address name='_40200b0'>
 		<tag value='0100-XE-702-H1p_Status' type='str' min='0' max='32' />
 		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40170'>
+	<Address name='_40200b1'>
 		<tag value='0100-XE-702-V1p_Status' type='str' min='0' max='32' />
 		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40171'>
+	<Address name='_40200b2'>
 		<tag value='0100-XE-702-R1p_Status' type='str' min='0' max='32' />
 		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40172'>
+	<Address name='_40200b3'>
 		<tag value='0100-XE-702-H2p_Status' type='str' min='0' max='32' />
 		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40173'>
+	<Address name='_40200b4'>
 		<tag value='0100-XE-702-V2p_Status' type='str' min='0' max='32' />
 		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40174'>
+	<Address name='_40200b5'>
 		<tag value='0100-XE-702-R2p_Status' type='str' min='0' max='32' />
 		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40175'>
+	<Address name='_40200b6'>
 		<tag value='0100-XE-702-H3p_Status' type='str' min='0' max='32' />
 		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40176'>
+	<Address name='_40200b7'>
 		<tag value='0100-XE-702-V3p_Status' type='str' min='0' max='32' />
 		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40177'>
+	<Address name='_40200b8'>
 		<tag value='0100-XE-702-R3p_Status' type='str' min='0' max='32' />
 		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40178'>
+	<Address name='_40200b9'>
 		<tag value='0100-XE-702-H4p_Status' type='str' min='0' max='32' />
 		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40179'>
+	<Address name='_40200b10'>
 		<tag value='0100-XE-702-V4p_Status' type='str' min='0' max='32' />
 		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40180'>
+	<Address name='_40200b11'>
 		<tag value='0100-XE-702-R4p_Status' type='str' min='0' max='32' />
 		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40181'>
+	<Address name='_40200b12'>
 		<tag value='0100-XE-702-H5p_Status' type='str' min='0' max='32' />
 		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40182'>
+	<Address name='_40200b13'>
 		<tag value='0100-XE-702-V5p_Status' type='str' min='0' max='32' />
 		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40183'>
+	<Address name='_40200b14'>
 		<tag value='0100-XE-702-R5p_Status' type='str' min='0' max='32' />
 		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40184'>
+	<Address name='_40200b15'>
 		<tag value='0100-XE-702-H6p_Status' type='str' min='0' max='32' />
 		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40185'>
+	<Address name='_40201b0'>
 		<tag value='0100-XE-702-V6p_Status' type='str' min='0' max='32' />
 		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40186'>
+	<Address name='_40201b1'>
 		<tag value='0100-XE-702-R6p_Status' type='str' min='0' max='32' />
 		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40187'>
+	<Address name='_40201b2'>
 		<tag value='0100-XE-702-H7p_Status' type='str' min='0' max='32' />
 		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40188'>
+	<Address name='_40201b3'>
 		<tag value='0100-XE-702-V7p_Status' type='str' min='0' max='32' />
 		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40189'>
+	<Address name='_40201b4'>
 		<tag value='0100-XE-702-R7p_Status' type='str' min='0' max='32' />
 		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40190'>
+	<Address name='_40201b5'>
 		<tag value='0100-XE-703-H1p_Status' type='str' min='0' max='32' />
 		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40191'>
+	<Address name='_40201b6'>
 		<tag value='0100-XE-703-V1p_Status' type='str' min='0' max='32' />
 		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40192'>
+	<Address name='_40201b7'>
 		<tag value='0100-XE-703-R1p_Status' type='str' min='0' max='32' />
 		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40193'>
+	<Address name='_40201b8'>
 		<tag value='0100-XE-703-H2p_Status' type='str' min='0' max='32' />
 		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40194'>
+	<Address name='_40201b9'>
 		<tag value='0100-XE-703-V2p_Status' type='str' min='0' max='32' />
 		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40195'>
+	<Address name='_40201b10'>
 		<tag value='0100-XE-703-R2p_Status' type='str' min='0' max='32' />
 		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40196'>
+	<Address name='_40201b11'>
 		<tag value='0100-XE-703-H3p_Status' type='str' min='0' max='32' />
 		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40197'>
+	<Address name='_40201b12'>
 		<tag value='0100-XE-703-V3p_Status' type='str' min='0' max='32' />
 		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40198'>
+	<Address name='_40201b13'>
 		<tag value='0100-XE-703-R3p_Status' type='str' min='0' max='32' />
 		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40199'>
+	<Address name='_40201b14'>
 		<tag value='0100-XE-703-H4p_Status' type='str' min='0' max='32' />
 		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40200'>
+	<Address name='_40201b15'>
 		<tag value='0100-XE-703-V4p_Status' type='str' min='0' max='32' />
 		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40201'>
+	<Address name='_40203b0'>
 		<tag value='0100-XE-703-R4p_Status' type='str' min='0' max='32' />
 		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40202'>
+	<Address name='_40203b1'>
 		<tag value='0100-XE-703-H5p_Status' type='str' min='0' max='32' />
 		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40203'>
+	<Address name='_40203b2'>
 		<tag value='0100-XE-703-V5p_Status' type='str' min='0' max='32' />
 		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40204'>
+	<Address name='_40203b3'>
 		<tag value='0100-XE-703-R5p_Status' type='str' min='0' max='32' />
 		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40205'>
+	<Address name='_40203b4'>
 		<tag value='0100-XE-703-H6p_Status' type='str' min='0' max='32' />
 		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40206'>
+	<Address name='_40203b5'>
 		<tag value='0100-XE-703-V6p_Status' type='str' min='0' max='32' />
 		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40207'>
+	<Address name='_40203b6'>
 		<tag value='0100-XE-703-R6p_Status' type='str' min='0' max='32' />
 		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40208'>
+	<Address name='_40203b7'>
 		<tag value='0100-XE-703-H7p_Status' type='str' min='0' max='32' />
 		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40209'>
+	<Address name='_40203b8'>
 		<tag value='0100-XE-703-V7p_Status' type='str' min='0' max='32' />
 		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40210'>
+	<Address name='_40203b9'>
 		<tag value='0100-XE-703-R7p_Status' type='str' min='0' max='32' />
 		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40211'>
+	<Address name='_40204b0'>
 		<tag value='0100-XE-702-H1s_Status' type='str' min='0' max='32' />
 		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40212'>
+	<Address name='_40204b1'>
 		<tag value='0100-XE-702-V1s_Status' type='str' min='0' max='32' />
 		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40213'>
+	<Address name='_40204b2'>
 		<tag value='0100-XE-702-R1s_Status' type='str' min='0' max='32' />
 		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40214'>
+	<Address name='_40204b3'>
 		<tag value='0100-XE-702-H2s_Status' type='str' min='0' max='32' />
 		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40215'>
+	<Address name='_40204b4'>
 		<tag value='0100-XE-702-V2s_Status' type='str' min='0' max='32' />
 		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40216'>
+	<Address name='_40204b5'>
 		<tag value='0100-XE-702-R2s_Status' type='str' min='0' max='32' />
 		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40217'>
+	<Address name='_40204b6'>
 		<tag value='0100-XE-702-H3s_Status' type='str' min='0' max='32' />
 		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40218'>
+	<Address name='_40204b7'>
 		<tag value='0100-XE-702-V3s_Status' type='str' min='0' max='32' />
 		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40219'>
+	<Address name='_40204b8'>
 		<tag value='0100-XE-702-R3s_Status' type='str' min='0' max='32' />
 		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40220'>
+	<Address name='_40204b9'>
 		<tag value='0100-XE-702-H4s_Status' type='str' min='0' max='32' />
 		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40221'>
+	<Address name='_40204b10'>
 		<tag value='0100-XE-702-V4s_Status' type='str' min='0' max='32' />
 		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40222'>
+	<Address name='_40204b11'>
 		<tag value='0100-XE-702-R4s_Status' type='str' min='0' max='32' />
 		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40223'>
+	<Address name='_40204b12'>
 		<tag value='0100-XE-702-H5s_Status' type='str' min='0' max='32' />
 		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40224'>
+	<Address name='_40204b13'>
 		<tag value='0100-XE-702-V5s_Status' type='str' min='0' max='32' />
 		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40225'>
+	<Address name='_40204b14'>
 		<tag value='0100-XE-702-R5s_Status' type='str' min='0' max='32' />
 		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40226'>
+	<Address name='_40204b15'>
 		<tag value='0100-XE-702-H6s_Status' type='str' min='0' max='32' />
 		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40227'>
+	<Address name='_40205b0'>
 		<tag value='0100-XE-702-V6s_Status' type='str' min='0' max='32' />
 		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40228'>
+	<Address name='_40205b1'>
 		<tag value='0100-XE-702-R6s_Status' type='str' min='0' max='32' />
 		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40229'>
+	<Address name='_40205b2'>
 		<tag value='0100-XE-702-H7s_Status' type='str' min='0' max='32' />
 		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40230'>
+	<Address name='_40205b3'>
 		<tag value='0100-XE-702-V7s_Status' type='str' min='0' max='32' />
 		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40231'>
+	<Address name='_40205b4'>
 		<tag value='0100-XE-702-R7s_Status' type='str' min='0' max='32' />
 		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40232'>
+	<Address name='_40205b5'>
 		<tag value='0100-XE-703-H1s_Status' type='str' min='0' max='32' />
 		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40233'>
+	<Address name='_40205b6'>
 		<tag value='0100-XE-703-V1s_Status' type='str' min='0' max='32' />
 		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40234'>
+	<Address name='_40205b7'>
 		<tag value='0100-XE-703-R1s_Status' type='str' min='0' max='32' />
 		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40235'>
+	<Address name='_40205b8'>
 		<tag value='0100-XE-703-H2s_Status' type='str' min='0' max='32' />
 		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40236'>
+	<Address name='_40205b9'>
 		<tag value='0100-XE-703-V2s_Status' type='str' min='0' max='32' />
 		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40237'>
+	<Address name='_40205b10'>
 		<tag value='0100-XE-703-R2s_Status' type='str' min='0' max='32' />
 		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40238'>
+	<Address name='_40205b11'>
 		<tag value='0100-XE-703-H3s_Status' type='str' min='0' max='32' />
 		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40239'>
+	<Address name='_40205b12'>
 		<tag value='0100-XE-703-V3s_Status' type='str' min='0' max='32' />
 		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40240'>
+	<Address name='_40205b13'>
 		<tag value='0100-XE-703-R3s_Status' type='str' min='0' max='32' />
 		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40241'>
+	<Address name='_40205b14'>
 		<tag value='0100-XE-703-H4s_Status' type='str' min='0' max='32' />
 		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40242'>
+	<Address name='_40205b15'>
 		<tag value='0100-XE-703-V4s_Status' type='str' min='0' max='32' />
 		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40243'>
+	<Address name='_40206b0'>
 		<tag value='0100-XE-703-R4s_Status' type='str' min='0' max='32' />
 		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40244'>
+	<Address name='_40206b1'>
 		<tag value='0100-XE-703-H5s_Status' type='str' min='0' max='32' />
 		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40245'>
+	<Address name='_40206b2'>
 		<tag value='0100-XE-703-V5s_Status' type='str' min='0' max='32' />
 		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40246'>
+	<Address name='_40206b3'>
 		<tag value='0100-XE-703-R5s_Status' type='str' min='0' max='32' />
 		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40247'>
+	<Address name='_40206b4'>
 		<tag value='0100-XE-703-H6s_Status' type='str' min='0' max='32' />
 		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40248'>
+	<Address name='_40206b5'>
 		<tag value='0100-XE-703-V6s_Status' type='str' min='0' max='32' />
 		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40249'>
+	<Address name='_40206b6'>
 		<tag value='0100-XE-703-R6s_Status' type='str' min='0' max='32' />
 		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40250'>
+	<Address name='_40206b7'>
 		<tag value='0100-XE-703-H7s_Status' type='str' min='0' max='32' />
 		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40251'>
+	<Address name='_40206b8'>
 		<tag value='0100-XE-703-V7s_Status' type='str' min='0' max='32' />
 		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40252'>
+	<Address name='_40206b9'>
 		<tag value='0100-XE-703-R7s_Status' type='str' min='0' max='32' />
 		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='boolean' type='str' min='0' max='32' />
+		<datatype value='byte' type='str' min='0' max='32' />
+	</Address>
+	<Address name='_40207b0'>
+		<tag value='P_Opt_alarm' type='str' min='0' max='32' />
+		<slave value='1' type='int' min='0' max='10' />
+		<datatype value='byte' type='str' min='0' max='32' />
+	</Address>
+	<Address name='_40207b1'>
+		<tag value='P_OptS_alarm' type='str' min='0' max='32' />
+		<slave value='1' type='int' min='0' max='10' />
+		<datatype value='byte' type='str' min='0' max='32' />
+	</Address>
+	<Address name='_40207b2'>
+		<tag value='P_EWS_alarm' type='str' min='0' max='32' />
+		<slave value='1' type='int' min='0' max='10' />
+		<datatype value='byte' type='str' min='0' max='32' />
+	</Address>
+	<Address name='_40208b0'>
+		<tag value='S_Opt_alarm' type='str' min='0' max='32' />
+		<slave value='2' type='int' min='0' max='10' />
+		<datatype value='byte' type='str' min='0' max='32' />
+	</Address>
+	<Address name='_40208b1'>
+		<tag value='S_OptS_alarm' type='str' min='0' max='32' />
+		<slave value='2' type='int' min='0' max='10' />
+		<datatype value='byte' type='str' min='0' max='32' />
+	</Address>
+	<Address name='_40208b2'>
+		<tag value='S_EWS_alarm' type='str' min='0' max='32' />
+		<slave value='2' type='int' min='0' max='10' />
+		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
 </MT_Modbus>
