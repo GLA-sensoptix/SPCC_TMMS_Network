@@ -120,6 +120,10 @@ class ModbusCommunication:
         self.socket = TMMSClientSerial('COM1')
 
     def run_requests(self):
+        adress = 40208
+        datatype = "byte"
+        value, status = self.socket.read(adress, datatype)
+        print(value)
         for i, row in enumerate(self.adress_list.iterrows()):
             if row[1].loc['circuit'] == self.circuit:
                 adress = row[1].loc['adress']
