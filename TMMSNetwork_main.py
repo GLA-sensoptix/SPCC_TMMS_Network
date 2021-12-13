@@ -120,10 +120,10 @@ class ModbusCommunication:
         self.socket = TMMSClientSerial('COM1')
 
     def run_requests(self):
-        adress = 40208
-        datatype = "byte"
-        value, status = self.socket.read(adress, datatype)
-        print(value)
+        # adress = 40207
+        # datatype = "byte"
+        # value, status = self.socket.read(adress, datatype)
+        # print(value)
         for i, row in enumerate(self.adress_list.iterrows()):
             if row[1].loc['circuit'] == self.circuit:
                 adress = row[1].loc['adress']
@@ -271,9 +271,6 @@ if __name__ == "__main__":
                 thm = True
             if arg == "secondary":
                 circuit = 's'
-    display = True
-    thm = False
-    circuit = 's'
     app = QApplication([])
     win = MainWindow(circuit, thm=thm, display=display)
     if display:
