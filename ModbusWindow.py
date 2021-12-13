@@ -47,5 +47,5 @@ class Ui_ModbusWindow(object):
     def retranslateUi(self, ModbusWindow):
         _translate = QtCore.QCoreApplication.translate
         ModbusWindow.setWindowTitle(_translate("ModbusWindow", "Modbus Registry Display"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("ModbusWindow", "TMMS Cabinet"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("ModbusWindow", "TMMS Network Cabinet"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("ModbusWindow", "Sensor data"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("ModbusWindow", "Adresses values"))

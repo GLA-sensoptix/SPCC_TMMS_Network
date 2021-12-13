@@ -5,10 +5,10 @@ Created on Fri Oct 15 10:44:47 2021
 @author: GLA
 """
 
-import logging
-logging.basicConfig()
-log = logging.getLogger()
-log.setLevel(logging.DEBUG)
+# import logging
+# logging.basicConfig()
+# log = logging.getLogger()
+# log.setLevel(logging.DEBUG)
 
 
 from pymodbus.server.asynchronous import StartTcpServer, StartSerialServer, StopServer
@@ -87,6 +87,8 @@ class TMMSModbusClient(TMMSModbus):
     #     self.socket.close()
     
     def read(self, adresses, datatype, slave=0):
+        if type(adresses) != list:
+                adresses = [adresses]
         requests = {}
         status = {}
         for address in adresses:

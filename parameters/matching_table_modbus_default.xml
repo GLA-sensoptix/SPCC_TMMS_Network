@@ -839,34 +839,4 @@
 		<slave value='2' type='int' min='0' max='10' />
 		<datatype value='byte' type='str' min='0' max='32' />
 	</Address>
-	<Address name='_40207b0'>
-		<tag value='P_Opt_alarm' type='str' min='0' max='32' />
-		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='byte' type='str' min='0' max='32' />
-	</Address>
-	<Address name='_40207b1'>
-		<tag value='P_OptS_alarm' type='str' min='0' max='32' />
-		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='byte' type='str' min='0' max='32' />
-	</Address>
-	<Address name='_40207b2'>
-		<tag value='P_EWS_alarm' type='str' min='0' max='32' />
-		<slave value='1' type='int' min='0' max='10' />
-		<datatype value='byte' type='str' min='0' max='32' />
-	</Address>
-	<Address name='_40208b0'>
-		<tag value='S_Opt_alarm' type='str' min='0' max='32' />
-		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='byte' type='str' min='0' max='32' />
-	</Address>
-	<Address name='_40208b1'>
-		<tag value='S_OptS_alarm' type='str' min='0' max='32' />
-		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='byte' type='str' min='0' max='32' />
-	</Address>
-	<Address name='_40208b2'>
-		<tag value='S_EWS_alarm' type='str' min='0' max='32' />
-		<slave value='2' type='int' min='0' max='10' />
-		<datatype value='byte' type='str' min='0' max='32' />
-	</Address>
 </MT_Modbus>

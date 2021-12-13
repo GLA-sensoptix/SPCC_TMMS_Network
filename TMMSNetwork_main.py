@@ -5,12 +5,6 @@ Created on Thu Nov  4 16:09:38 2021
 @author: GLA
 """
 
-# TO DO:
-# Se connecter aux 4 serveurs (192.168.0.21~24)
-# Définir le cycle des requêtes
-# Regrouper les données dans un tableu unique
-# Créer une interface qt d'affichage du tableau
-# Mettre à jour périodiquement ce tableauDi
 
 from PyQt5.QtCore import *
 # from PyQt5.QtGui import *
@@ -35,17 +29,14 @@ class Struct:
     pass
 
 class FileManager:
-    def __init__(self, data):
+    def __init__(self):
+        self.nof_sensors = 84
         self.run_path = os.getcwd()
-        print(self.run_path)
         self.folder = os.path.realpath(os.path.join(self.run_path, './data'))
-        # self.filename = os.path.realpath(os.path.join(self.run_path, './data/DeltaLuxCryo_measures.dat'))
-        self.filename = os.path.realpath(os.path.join(self.run_path, './data/storage_test.dat'))
-        self.data = data
+        self.filename = os.path.realpath(os.path.join(self.run_path, './data/DeltaLuxCryo_measurements.dat'))
         self.create_file()
         
     def create_file(self):
-        N_sensors = 84
         Tanks = ['702-', '703-']
         Locations = [str(i+1) for i in range(7)]
         Axis = ['H', 'V', 'R']
@@ -69,63 +60,90 @@ class FileManager:
                             f.write(',"0100-XE-' + tank +
                                     ax + loc + r + ' Status"')
             f.write('\n"TS","RN"')
-            for k in range(N_sensors):
+            for k in range(self.nof_sensors):
                 f.write(',"mm","-"')
             f.write('\n')
             f.write('"",""')
-            for k in range(2, N_sensors+2):
+            for k in range(2, self.nof_sensors+2):
                 f.write(',"Smp","Smp"')
             f.write('\n')
       
     def update_file(self, data, rec_nb):
-        N_sensors=84
         with open(self.filename, 'a') as f:
             f.write('"' + time.strftime("%Y-%m-%d %H:%M:%S",
                     time.localtime()) + '"')
             f.write(',' + str(rec_nb))
-            for k in range(N_sensors):
-                D = data[k][2]
+            for k in range(self.nof_sensors):
+                D = data.iloc[k][1]
                 f.write("," + str(D))
-            for k in range(N_sensors):
-                status = data[k+84][2]
+            for k in range(self.nof_sensors):
+                status = data.iloc[k,2]
                 f.write("," + str(int(status)))
             f.write("\n")
 
 class ModbusCommunication:
-    def __init__(self):
+    def __init__(self, circuit):
+        self.circuit = circuit
+        self.nof_sensors = 84
         self._type_dict = {'int': int,
                            'str': str}
-        addresses = self.load('parameters/matching_table_modbus_default.xml')
-        nof_addresses = len(addresses.__dict__.items())
-        self.address_list = pd.DataFrame([[0, '', 0, '']] * nof_addresses,
-                                         index=[str(i) for i in range(1, nof_addresses+1)],
-                                         columns=['address', 'name', 'slave', 'datatype'])
+        adresses = self.load('parameters/matching_table_modbus_default.xml')
+        self.sensor_adresses = pd.DataFrame([['', 0, 0, 0, '']] * self.nof_sensors,
+                                    index=[str(i) for i in range(1,self.nof_sensors+1)],
+                                    columns=['name', 'movement', 'status', 'bit', 'circuit'])
+        self.sensor_data = pd.DataFrame([['', 0, 0, '']] * self.nof_sensors,
+                                    index=[str(i) for i in range(1,self.nof_sensors+1)],
+                                    columns=['name', 'movement', 'status', 'circuit'])
+        self.adress_list = pd.DataFrame([[0, '', '', '']],
+                                        columns=['adress', 'slave', 'datatype', 'circuit'])
+        self.adress_data = pd.DataFrame([[0, '', '', '']],
+                                        columns=['adress', 'value', 'databyte', 'circuit'])
         i = 0
-        for attr, value in addresses.__dict__.items():
-            self.address_list.iloc[i] = [int(attr.split('_')[1]), value.tag, value.slave, value.datatype]
-            i += 1
-        self.slaves = {1: 'COM1', 2: 'COM2'}
-        self.cabinets = {}
-        self.cabinets['AIR'] = Struct()
-        self.cabinets['NETWORK'] = Struct()
-        self.cabinets['AIR'].data = [
-            [int(self.address_list.iloc[i, 0]), self.address_list.iloc[i, 1], 0] for i in range(0, nof_addresses)]
-        self.cabinets['NETWORK'].data = [
-            [40000 + i, 'Data ' + str(i), np.random.rand()] for i in range(1, 21)]
-        self.sockets = {1: TMMSClientEthernet('192.168.0.21', 5020),
-                        2: TMMSClientEthernet('192.168.0.22', 5020)}
-        # self.file_manager = FileManager(self.cabinets['AIR'].data)
+        for attr, value in adresses.__dict__.items():
+            if not 'b' in attr.split('_')[1]:
+                adress = int(attr.split('_')[1])
+                self.adress_list.loc[i] = [adress, value.slave, value.datatype, value.tag[-1]]
+                self.adress_data.loc[i] = [adress, 0, value.datatype, value.tag[-1]]
+                self.sensor_adresses.loc[i] = [value.tag, adress, 0, 0, value.tag[-1]]
+                self.sensor_data.loc[i] = [value.tag, 0, 0, value.tag[-1]]
+                i += 1
+            else:
+                adress = int(attr.split('_')[1].split('b')[0])
+                bit = attr.split('_')[1].split('b')[1]
+                if not self.adress_list.isin([adress]).any().any():
+                    self.adress_list.loc[i] = [adress, value.slave, value.datatype, value.tag.split('_Status')[0][-1]]
+                    self.adress_data.loc[i] = [adress, 0, value.datatype, value.tag.split('_Status')[0][-1]]
+                    i += 1
+                name = value.tag.split('_')[0]
+                self.sensor_adresses.loc[self.sensor_adresses.loc[:, 'name'] == name, 'status'] = adress                  
+                self.sensor_adresses.loc[self.sensor_adresses.loc[:, 'name'] == name, 'bit'] = bit
+        self.socket = TMMSClientSerial('COM1')
 
     def run_requests(self):
-        for i, row in enumerate(self.address_list.iterrows()):
-            value, status = self.sockets[row[1].loc['slave']].request(
-                row[1].loc['address'], row[1].loc['datatype'])
-            if status:
-                self.cabinets['AIR'].data[i][2] = value
-            else:
-                self.cabinets['AIR'].data[i][2] = 0
-        self.cabinets['NETWORK'].data = [
-            [40000 + i, 'Data ' + str(i), np.random.rand()] for i in range(1, 21)]
+        for i, row in enumerate(self.adress_list.iterrows()):
+            if row[1].loc['circuit'] == self.circuit:
+                adress = row[1].loc['adress']
+                datatype = row[1].loc['datatype']
+                if datatype == 'float32':
+                    value, status = self.socket.read(adress, datatype)
+                    name = self.sensor_adresses.loc[self.sensor_adresses.loc[:, 'movement'] == adress, 'name'].iloc[0]
+                    if status:
+                        val = value[adress]
+                    else:
+                        val = 0
+                    self.sensor_data.loc[self.sensor_data.loc[:, 'name'] == name, 'movement'] = val
+                    self.adress_data.loc[self.adress_data.loc[:, 'adress'] == adress, 'value'] = str(val)
+                else:
+                    value, status = self.socket.read(adress, datatype)
+                    names = self.sensor_adresses.loc[self.sensor_adresses.loc[:, 'status'] == adress, 'name']
+                    for name in names:
+                        bit = int(self.sensor_adresses.loc[self.sensor_adresses.loc[:, 'name'] == name, 'bit'])
+                        if status:
+                            val = value[adress][bit]
+                        else:
+                            val = 0
+                        self.sensor_data.loc[self.sensor_data.loc[:, 'name'] == name, 'status'] = val
+                    self.adress_data.loc[self.adress_data.loc[:, 'adress'] == adress, 'value'] = str(value[adress])
 
     def load(self, xmlFile):
         with open(xmlFile) as fobj:
@@ -147,55 +165,54 @@ class ModbusCommunication:
                 setattr(Elem_struct, name, Elem)
             return elem.get('name'), Elem_struct
 
-
 class MainWindow(QMainWindow, Ui_ModbusWindow):
-    def __init__(self, thm, parent=None):
+    def __init__(self, circuit, thm=True, display=False, parent=None):
         super().__init__(parent)
+        self.circuit = circuit
+        self.display = display
+        self.rec_nb = 0
         self.setupUi(self)
-        self.modbus = ModbusCommunication()
-        self.file_manager = FileManager(self.modbus.cabinets['AIR'].data)
+        self.modbus = ModbusCommunication(self.circuit)
+        self.modbus.run_requests()
+        self.file_manager = FileManager()
+        self.file_manager.update_file(self.modbus.sensor_data, self.rec_nb)
         self.refresh_thm = thm
         # Init tables
-        header_1 = ['Address', 'Name', 'Value']
-        data_1 = self.modbus.cabinets['AIR'].data
-        header_2 = ['Address', 'Name', 'Value']
-        data_2 = self.modbus.cabinets['NETWORK'].data
-        self.tableView_1.model = TableModel(data_1, header_1)
-        self.tableView_2.model = TableModel(data_2, header_2)
+        header_1 = ['Sensor', 'Movement', 'Status']
+        data_1 = self.modbus.sensor_data.loc[self.modbus.sensor_data['circuit'] == self.circuit].iloc[:,0:3]
+        header_2 = ['Adress', 'Value', 'Datatype']
+        data_2 = self.modbus.adress_data.loc[self.modbus.adress_data['circuit'] == self.circuit].iloc[:,0:3]
+        self.tableView_1.model = TableModel(np.array(data_1), header_1)
+        self.tableView_2.model = TableModel(np.array(data_2), header_2)
         # self.tableView.reset() # commented 05/11: usefull ?
         self.tableView_1.setModel(self.tableView_1.model)
         self.tableView_2.setModel(self.tableView_2.model)
-
-        self.rec_nb=0
+        t = time.strftime('[%y-%m-%d %H-%M-%S]')
+        print(t + ' TMMS Network Started')
         self.timer = QTimer()
         self.timer.timeout.connect(self.on_timer)
-        self.timer.start(1000)
+        self.timer.start(5000)
         
     def on_timer(self):
+        self.rec_nb += 1
         # threading.Thread(target=self.modbus.run_requests).start()
         self.modbus.run_requests()
-        t = time.strftime('[%y-%m-%d %H-%M-%S]')
-        print(t + ' Data updated')
-        self.rec_nb += 1
-        self.file_manager.update_file(self.modbus.cabinets['AIR'].data, self.rec_nb)
-        # threading.Thread(target=ETL, args=(self.file_manager.folder, )).start()
         if self.refresh_thm:
+            # threading.Thread(target=ETL, args=(self.file_manager.folder, )).start()
             ETL(self.file_manager.folder)
-        self.refresh()
+        if self.display:
+            self.refresh()
         t = time.strftime('[%y-%m-%d %H-%M-%S]')
         print(t + ' Data updated')
-        
 
     def refresh(self):
         # Refresh Tables
-        data_1 = self.modbus.cabinets['AIR'].data
-        data_2 = self.modbus.cabinets['NETWORK'].data
-        self.tableView_1.model.update(data_1)
+        data_1 = self.modbus.sensor_data.loc[self.modbus.sensor_data['circuit'] == self.circuit].iloc[:,0:3]
+        data_2 = self.modbus.adress_data.loc[self.modbus.adress_data['circuit'] == self.circuit].iloc[:,0:3]
+        self.tableView_1.model.update(np.array(data_1))
         self.tableView_1.reset()
-        self.tableView_2.model.update(data_2)
+        self.tableView_2.model.update(np.array(data_2))
         self.tableView_2.reset()
-        # self.file_manager=FileManager.update_file(self)
-        # self.rec_nb=self.rec_nb+1
 
 class TableModel(QAbstractTableModel):
     def __init__(self, arraydata, header):
@@ -239,16 +256,22 @@ class TableModel(QAbstractTableModel):
 
 
 if __name__ == "__main__":
-    display = True
+    display = False
     thm = False
+    circuit = 'p'
     if len(sys.argv) > 1:
         for arg in sys.argv[1:]:
             if arg == 'display':
                 display = True
-            if arg == 'THM':
+            if arg == 'thm':
                 thm = True
+            if arg == "secondary":
+                circuit = 's'
+    display = True
+    thm = False
+    circuit = 's'
     app = QApplication([])
-    win = MainWindow(thm)
+    win = MainWindow(circuit, thm=thm, display=display)
     if display:
         win.show()
     app.exec_()
