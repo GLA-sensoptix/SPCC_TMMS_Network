@@ -66,20 +66,34 @@ class FileManager:
             f.write('"",""')
             for k in range(2, self.nof_sensors+2):
                 f.write(',"Smp","Smp"')
-            f.write('\n')
       
-    def update_file(self, data, rec_nb):
+    def update_file(self, data, rec_nb, circuit):
         with open(self.filename, 'a') as f:
-            f.write('"' + time.strftime("%Y-%m-%d %H:%M:%S",
+            f.write('\n"' + time.strftime("%Y-%m-%d %H:%M:%S",
                     time.localtime()) + '"')
             f.write(',' + str(rec_nb))
-            for k in range(self.nof_sensors):
-                D = data.iloc[k][1]
-                f.write("," + str(D))
-            for k in range(self.nof_sensors):
-                status = data.iloc[k,2]
-                f.write("," + str(int(status)))
-            f.write("\n")
+            if circuit == 'p':
+                self.write(data.loc[:, 'movement'], f)
+                self.write(None, f)
+                self.write(data.loc[:, 'status'], f)
+                self.write(None, f)
+            else:
+                self.write(None, f)
+                self.write(data.loc[:, 'movement'], f)
+                self.write(None, f)
+                self.write(data.loc[:, 'status'], f)
+                
+    def write(self, data, f):
+        for k in range(self.nof_sensors//2):
+            if type(data) == type(None):
+                f.write(",")
+            else:
+                f.write("," + str(data[k]))
+        # for k in range(self.nof_sensors/2):
+        #     if data == None:
+        #         status = data.iloc[k,2]
+        #         f.write("," + str(int(status)))
+        #     else:
 
 class ModbusCommunication:
     def __init__(self, circuit):
@@ -179,7 +193,8 @@ class MainWindow(QMainWindow, Ui_ModbusWindow):
         self.modbus = ModbusCommunication(self.circuit)
         self.modbus.run_requests()
         self.file_manager = FileManager()
-        self.file_manager.update_file(self.modbus.sensor_data, self.rec_nb)
+        data = self.modbus.sensor_data.loc[self.modbus.sensor_data['circuit'] == self.circuit]
+        self.file_manager.update_file(data, self.rec_nb, self.circuit)
         self.refresh_thm = thm
         # Init tables
         header_1 = ['Sensor', 'Movement', 'Status']
@@ -201,6 +216,8 @@ class MainWindow(QMainWindow, Ui_ModbusWindow):
         self.rec_nb += 1
         # threading.Thread(target=self.modbus.run_requests).start()
         self.modbus.run_requests()
+        data = self.modbus.sensor_data.loc[self.modbus.sensor_data['circuit'] == self.circuit]
+        self.file_manager.update_file(data, self.rec_nb, self.circuit)
         if self.refresh_thm:
             # threading.Thread(target=ETL, args=(self.file_manager.folder, )).start()
             ETL(self.file_manager.folder)
@@ -271,6 +288,8 @@ if __name__ == "__main__":
                 thm = True
             if arg == "secondary":
                 circuit = 's'
+    display = True
+    thm = True
     app = QApplication([])
     win = MainWindow(circuit, thm=thm, display=display)
     if display:
