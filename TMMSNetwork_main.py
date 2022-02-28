@@ -10,7 +10,7 @@ from PyQt5.QtCore import *
 # from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from ModbusWindow import Ui_ModbusWindow
-from TMMSNetwork_modbus import TMMSClientSerial, TMMSClientEthernet
+from TMMSNetwork_modbus import TMMSClientSerial, TMMSClientEthernet, TMMSServerEthernet
 from handler import ETL
 
 from lxml import etree, objectify
@@ -30,70 +30,93 @@ class Struct:
 
 class FileManager:
     def __init__(self):
+        self.max_capacity = 1000
         self.nof_sensors = 84
         self.run_path = os.getcwd()
         self.folder = os.path.realpath(os.path.join(self.run_path, './data'))
-        self.filename = os.path.realpath(os.path.join(self.run_path, './data/DeltaLuxCryo_measurements.dat'))
-        self.create_file()
+        self.filename_live = os.path.realpath(os.path.join(self.run_path, './data/DeltaLuxCryo_measurements_live.dat'))
+        self.filename_history = os.path.realpath(os.path.join(self.run_path, './data/DeltaLuxCryo_measurements_history.dat'))
+        if not os.path.exists(self.filename_history):
+            self.file_creation(self.filename_history)
+      
+    def read(self, filename):
+        if not os.path.exists(filename):
+            return([])
+        data = pd.read_csv(filename, delimiter=',', header=1, skiprows=[2,3])
+        return(data)
+    
+    def file_creation(self, filename):
+        if os.path.exists(filename):
+            os.remove(filename)
+        with open(filename, 'w+') as f:
+            f.write(self.header())
         
-    def create_file(self):
+    def header(self):
         Tanks = ['702-', '703-']
         Locations = [str(i+1) for i in range(7)]
         Axis = ['H', 'V', 'R']
         Red = ['p', 's']
-        if os.path.exists(self.filename):
-            os.remove(self.filename)
-        with open(self.filename, 'w+') as f:
-            f.write(
-                '"TOA5","TBM2a-STA1","CR300","20544","CR300.Std.09.02","CPU:TBM2a-STA1_V05.CR300","29960","RawData"\n')
-            f.write('"TIMESTAMP","RECORD"')
-            for r in Red:
-                for tank in Tanks:
-                    for loc in Locations:
-                        for ax in Axis:
-                            f.write(',"0100-XE-' + tank + ax +
-                                    loc + r + ' Movement"')
-            for r in Red:
-                for tank in Tanks:
-                    for loc in Locations:
-                        for ax in Axis:
-                            f.write(',"0100-XE-' + tank +
-                                    ax + loc + r + ' Status"')
-            f.write('\n"TS","RN"')
-            for k in range(self.nof_sensors):
-                f.write(',"mm","-"')
-            f.write('\n')
-            f.write('"",""')
-            for k in range(2, self.nof_sensors+2):
-                f.write(',"Smp","Smp"')
+        head = '"TOA5","TBM2a-STA1","CR300","20544","CR300.Std.09.02","CPU:TBM2a-STA1_V05.CR300","29960","RawData"'
+        head += '\n"TIMESTAMP","RECORD"'
+        for r in Red:
+            for tank in Tanks:
+                for loc in Locations:
+                    for ax in Axis:
+                        head += ',"0100-XE-' + tank + ax + loc + r + ' Movement"'
+        for r in Red:
+            for tank in Tanks:
+                for loc in Locations:
+                    for ax in Axis:
+                        head += ',"0100-XE-' + tank + ax + loc + r + ' Status"'
+        head += '\n"TS","RN"'
+        for k in range(self.nof_sensors):
+            head += ',"mm","-"'
+        head +='\n"",""'
+        for k in range(2, self.nof_sensors+2):
+            head += ',"Smp","Smp"'
+        head += '\n'
+        return(head)
       
-    def update_file(self, data, rec_nb, circuit):
-        with open(self.filename, 'a') as f:
-            f.write('\n"' + time.strftime("%Y-%m-%d %H:%M:%S",
-                    time.localtime()) + '"')
-            f.write(',' + str(rec_nb))
-            if circuit == 'p':
-                self.write(data.loc[:, 'movement'], f)
-                self.write(None, f)
-                self.write(data.loc[:, 'status'], f)
-                self.write(None, f)
-            else:
-                self.write(None, f)
-                self.write(data.loc[:, 'movement'], f)
-                self.write(None, f)
-                self.write(data.loc[:, 'status'], f)
-                
-    def write(self, data, f):
-        for k in range(self.nof_sensors//2):
-            if type(data) == type(None):
-                f.write(",")
-            else:
-                f.write("," + str(data[k]))
-        # for k in range(self.nof_sensors/2):
-        #     if data == None:
-        #         status = data.iloc[k,2]
-        #         f.write("," + str(int(status)))
-        #     else:
+    def append(self, filename, dat_str):
+        with open(filename, 'a') as file:
+            file.write(dat_str)
+      
+    def data_to_str(self, data, rec_nb, circuit):
+        
+        def shunt(data):
+            string = ""
+            for k in range(self.nof_sensors):
+                if type(data[k]) == type(None):
+                    string += ","
+                else:
+                    string += "," + str(data[k])
+            return(string)
+        
+        line = '"' + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + '"'
+        line += ',' + str(rec_nb)
+        line += shunt(data.loc[:, 'movement'])
+        line += shunt(data.loc[:, 'status'])
+        line += "\n"
+        return(line)
+
+    def update(self, data, rec_nb, circuit):
+        # Update live and history files
+        self.file_creation(self.filename_live)
+        dat_str = self.data_to_str(data, rec_nb, circuit)
+        self.append(self.filename_live, dat_str)
+        self.append(self.filename_history, dat_str)
+        # Check History file size
+        data_history = self.read(self.filename_history)
+        if len(data_history) > self.max_capacity:
+            # Re-sample History data
+            data_history = data_history.iloc[::2,:]
+            for i in range(len(data_history)):
+                data_history.iloc[i,0] = '"' + data_history.iloc[i,0] + '"'
+            self.file_creation(self.filename_history)
+            data_history.to_csv(self.filename_history, mode='a', sep=',', 
+                                index=False, quotechar="'", header=False)
+            t = time.strftime('[%y-%m-%d %H-%M-%S]')
+            print(t + ' Data history stored')
 
 class ModbusCommunication:
     def __init__(self, circuit):
@@ -103,15 +126,13 @@ class ModbusCommunication:
                            'str': str}
         adresses = self.load('parameters/matching_table_modbus_default.xml')
         self.sensor_adresses = pd.DataFrame([['', 0, 0, 0, '']] * self.nof_sensors,
-                                    index=[str(i) for i in range(1,self.nof_sensors+1)],
                                     columns=['name', 'movement', 'status', 'bit', 'circuit'])
         self.sensor_data = pd.DataFrame([['', 0, 0, '']] * self.nof_sensors,
-                                    index=[str(i) for i in range(1,self.nof_sensors+1)],
                                     columns=['name', 'movement', 'status', 'circuit'])
         self.adress_list = pd.DataFrame([[0, '', '', '']],
                                         columns=['adress', 'slave', 'datatype', 'circuit'])
         self.adress_data = pd.DataFrame([[0, '', '', '']],
-                                        columns=['adress', 'value', 'databyte', 'circuit'])
+                                        columns=['adress', 'value', 'datatype', 'circuit'])
         i = 0
         for attr, value in adresses.__dict__.items():
             if not 'b' in attr.split('_')[1]:
@@ -131,32 +152,67 @@ class ModbusCommunication:
                 name = value.tag.split('_')[0]
                 self.sensor_adresses.loc[self.sensor_adresses.loc[:, 'name'] == name, 'status'] = adress                  
                 self.sensor_adresses.loc[self.sensor_adresses.loc[:, 'name'] == name, 'bit'] = bit
-        self.socket = TMMSClientSerial('COM1')
+        # self.main_client = TMMSClientSerial('COM1')
+        if self.circuit == "p":
+            self.main_client = TMMSClientEthernet('localhost', 502)
+            self.red_server = TMMSServerEthernet('localhost', 504) # "red" : redundancy
+            self.red_client = TMMSClientEthernet('localhost', 505) # "red" : redundancy
+        else:
+            self.main_client = TMMSClientEthernet('localhost', 503)
+            self.red_server = TMMSServerEthernet('localhost', 505) # "red" : redundancy
+            self.red_client = TMMSClientEthernet('localhost', 504) # "red" : redundancy
+        threading.Thread(target=self.red_server.run).start()
 
     def run_requests(self):
-        # adress = 40207
-        # datatype = "byte"
-        # value, status = self.socket.read(adress, datatype)
-        # print(value)
+        t = time.strftime('[%y-%m-%d %H-%M-%S]')
+        te = time.time()
+        status = False
+        try:
+            self.main_client.connect()
+            self.query(self.main_client, circuit)
+            status = True
+        except Exception:
+            self.sensor_data.loc[self.sensor_data.loc[:, 'circuit'] == self.circuit, 'movement'] = [None] * (self.nof_sensors // 2)
+            self.sensor_data.loc[self.sensor_data.loc[:, 'circuit'] == self.circuit, 'status'] = [None] * (self.nof_sensors // 2)
+            print(t + '[WARNING] Main Modbus Client not connected')
+        try:
+            self.red_client.connect()
+            if self.circuit == "p":
+                self.query(self.red_client, 's')
+            else:
+                self.query(self.red_client, 'p')
+            status = True
+        except Exception:
+            self.sensor_data.loc[self.sensor_data.loc[:, 'circuit'] != self.circuit, 'movement'] = [None] * (self.nof_sensors // 2)
+            self.sensor_data.loc[self.sensor_data.loc[:, 'circuit'] != self.circuit, 'status'] = [None] * (self.nof_sensors // 2)
+            print(t + '[WARNING] Redundant Modbus Client not connected')
+        
+        # print(self.sensor_data.to_string())
+        print(self.sensor_data)
+        te -= time.time()
+        # print('Modbus queries elapsed time: ' + str(-te))
+        return(status)
+
+    def query(self, socket, circuit):
         for i, row in enumerate(self.adress_list.iterrows()):
-            if row[1].loc['circuit'] == self.circuit:
+            if row[1].loc['circuit'] == circuit:
                 adress = row[1].loc['adress']
                 datatype = row[1].loc['datatype']
                 if datatype == 'float32':
-                    value, status = self.socket.read(adress, datatype)
+                    value, status = socket.read(adress, datatype)
                     name = self.sensor_adresses.loc[self.sensor_adresses.loc[:, 'movement'] == adress, 'name'].iloc[0]
-                    if status:
+                    if status and value[adress] != None:
                         val = value[adress]
                     else:
                         val = 0
                     self.sensor_data.loc[self.sensor_data.loc[:, 'name'] == name, 'movement'] = val
                     self.adress_data.loc[self.adress_data.loc[:, 'adress'] == adress, 'value'] = str(val)
                 else:
-                    value, status = self.socket.read(adress, datatype)
+                    value, status = socket.read(adress, datatype)
                     names = self.sensor_adresses.loc[self.sensor_adresses.loc[:, 'status'] == adress, 'name']
                     for name in names:
                         bit = int(self.sensor_adresses.loc[self.sensor_adresses.loc[:, 'name'] == name, 'bit'])
-                        if status:
+                        if status and value[adress] != None:
                             val = value[adress][bit]
                         else:
                             val = 0
@@ -193,8 +249,11 @@ class MainWindow(QMainWindow, Ui_ModbusWindow):
         self.modbus = ModbusCommunication(self.circuit)
         self.modbus.run_requests()
         self.file_manager = FileManager()
-        data = self.modbus.sensor_data.loc[self.modbus.sensor_data['circuit'] == self.circuit]
-        self.file_manager.update_file(data, self.rec_nb, self.circuit)
+        adress_data = self.modbus.adress_data
+        # self.modbus.red_server.update_database(adress_data.loc[adress_data['datatype'] == 'float32'])
+        self.modbus.red_server.update_database(self.modbus.adress_data)
+        # self.file_manager.update(data, self.rec_nb, self.circuit)
+        self.file_manager.update(self.modbus.sensor_data, self.rec_nb, self.circuit)
         self.refresh_thm = thm
         # Init tables
         header_1 = ['Sensor', 'Movement', 'Status']
@@ -210,21 +269,25 @@ class MainWindow(QMainWindow, Ui_ModbusWindow):
         print(t + ' TMMS Network Started')
         self.timer = QTimer()
         self.timer.timeout.connect(self.on_timer)
-        self.timer.start(5000)
-        
+        self.timer.start(10000)
+    
     def on_timer(self):
         self.rec_nb += 1
         # threading.Thread(target=self.modbus.run_requests).start()
-        self.modbus.run_requests()
-        data = self.modbus.sensor_data.loc[self.modbus.sensor_data['circuit'] == self.circuit]
-        self.file_manager.update_file(data, self.rec_nb, self.circuit)
+        status = self.modbus.run_requests()
+        adress_data = self.modbus.adress_data
+        self.modbus.red_server.update_database(self.modbus.adress_data)
+        # self.modbus.red_server.update_database(adress_data.loc[adress_data['datatype'] == 'float32'])
+        # self.file_manager.update(data, self.rec_nb, self.circuit)
+        self.file_manager.update(self.modbus.sensor_data, self.rec_nb, self.circuit)
         if self.refresh_thm:
             # threading.Thread(target=ETL, args=(self.file_manager.folder, )).start()
             ETL(self.file_manager.folder)
         if self.display:
             self.refresh()
-        t = time.strftime('[%y-%m-%d %H-%M-%S]')
-        print(t + ' Data updated')
+        if status:
+            t = time.strftime('[%y-%m-%d %H-%M-%S]')
+            print(t + ' Data updated')
 
     def refresh(self):
         # Refresh Tables
@@ -275,7 +338,6 @@ class TableModel(QAbstractTableModel):
         else:
             return(0)
 
-
 if __name__ == "__main__":
     display = False
     thm = False
@@ -288,8 +350,8 @@ if __name__ == "__main__":
                 thm = True
             if arg == "secondary":
                 circuit = 's'
-    display = True
-    thm = True
+    display = False
+    thm = False
     app = QApplication([])
     win = MainWindow(circuit, thm=thm, display=display)
     if display:

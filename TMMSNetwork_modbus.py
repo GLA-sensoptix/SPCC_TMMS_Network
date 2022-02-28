@@ -80,11 +80,11 @@ class TMMSModbusClient(TMMSModbus):
         self.nof_words = {'float32':2, 'boolean':1, 'uint32':1, 'byte':1}
         self.connected = True
 
-    # def connect(self):
-    #     self.socket.connet()
+    def connect(self):
+        self.socket.connect()
     
-    # def close(self):
-    #     self.socket.close()
+    def close(self):
+        self.socket.close()
     
     def read(self, adresses, datatype, slave=0):
         if type(adresses) != list:
@@ -136,4 +136,45 @@ class TMMSClientSerial(TMMSModbusSerial, TMMSModbusClient):
         
     def close(self):
         self.socket.close()
+        
+class TMMSModbusServer(TMMSModbus):
+    def __init__(self, identity):
+        TMMSModbus.__init__(self)
+        self.identity = identity
+        self.block = ModbusSparseDataBlock({40001: 0})
+        self.slave = ModbusSlaveContext(co=None, di=None, hr=self.block, ir=None, zero_mode=True)
+        self.context = ModbusServerContext(slaves=self.slave, single=True)
+        
+    def update_database(self, adress_data):
+            for k in range(len(adress_data)):
+                adress = adress_data.loc[k,'adress']
+                datatype = adress_data.loc[k,'datatype']
+                if datatype == 'float32':
+                    try:
+                        if adress_data.loc[k,'value'] != 'None':
+                            value = float(adress_data.loc[k,'value'])
+                        else:
+                            value = 0
+                    except:
+                        value = 0
+                elif datatype == 'byte':
+                    try:
+                        if adress_data.loc[k,'value'] != str([None] * 16) and type(adress_data.loc[k,'value']) == str:
+                            value = [int(s) for s in adress_data.loc[k,'value'].split('[')[1].split(']')[0].split(',')]
+                            if type(value) != list:
+                                value = [0] * 16
+                        else:
+                            value = [0] * 16
+                    except:
+                        value = [0] * 16
+                self.block.setValues(adress, self.encode(value, datatype))
+
+class TMMSServerEthernet(TMMSModbusEthernet, TMMSModbusServer):
+    def __init__(self, IPaddress, port, identity=0):
+        TMMSModbusEthernet.__init__(self, IPaddress, port)
+        TMMSModbusServer.__init__(self, identity)
+        
+    def run(self):
+        StartTcpServer(self.context, defer_reactor_run=False, identity=1, address=(self.IPaddress, self.port))
+        
 

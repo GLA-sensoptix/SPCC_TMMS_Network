@@ -1,4 +1,4 @@
 ﻿echo
 cls
-python TMMSNetwork_main.py secondary thm
+python TMMSNetwork_main.py secondary
 exit
