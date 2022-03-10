@@ -1,0 +1,5 @@
+<fields>
+  <field name="Rmax" value="2" />
+  <field name="Hmax" value="4" />
+  <field name="Vmax" value="4" />
+</fields>

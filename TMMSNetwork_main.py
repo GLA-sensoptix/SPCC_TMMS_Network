@@ -30,7 +30,7 @@ class Struct:
 
 class FileManager:
     def __init__(self):
-        self.max_capacity = 1000
+        self.max_capacity = 100
         self.nof_sensors = 84
         self.run_path = os.getcwd()
         self.folder = os.path.realpath(os.path.join(self.run_path, './data'))
@@ -269,10 +269,10 @@ class MainWindow(QMainWindow, Ui_ModbusWindow):
         print(t + ' TMMS Network Started')
         self.timer = QTimer()
         self.timer.timeout.connect(self.on_timer)
-        self.timer.start(10000)
+        self.timer.start(5000)
     
     def on_timer(self):
-        self.rec_nb += 1
+        # self.rec_nb += 1
         # threading.Thread(target=self.modbus.run_requests).start()
         status = self.modbus.run_requests()
         adress_data = self.modbus.adress_data
