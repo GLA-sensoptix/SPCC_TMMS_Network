@@ -46,10 +46,13 @@ class FileManager:
         return(data)
     
     def file_creation(self, filename):
-        if os.path.exists(filename):
-            os.remove(filename)
-        with open(filename, 'w+') as f:
-            f.write(self.header())
+        try:
+            if os.path.exists(filename):
+                os.remove(filename)
+            with open(filename, 'w+') as f:
+                f.write(self.header())
+        except:
+            print('except')
         
     def header(self):
         Tanks = ['702-', '703-']
@@ -87,7 +90,7 @@ class FileManager:
             string = ""
             for k in range(self.nof_sensors):
                 if type(data[k]) == type(None):
-                    string += ","
+                    string += ',"NaN"'
                 else:
                     string += "," + str(data[k])
             return(string)
@@ -105,13 +108,16 @@ class FileManager:
         dat_str = self.data_to_str(data, rec_nb, circuit)
         self.append(self.filename_live, dat_str)
         self.append(self.filename_history, dat_str)
-        # Check History file size
+        # Check History file size  'NaN' '"NaN"'
         data_history = self.read(self.filename_history)
         if len(data_history) > self.max_capacity:
             # Re-sample History data
             data_history = data_history.iloc[::2,:]
             for i in range(len(data_history)):
                 data_history.iloc[i,0] = '"' + data_history.iloc[i,0] + '"'
+            #data_history.replace('NaN', '"NaN"', inplace=True)
+            data_history.fillna('"NaN"', inplace=True)
+            #print(data_history)
             self.file_creation(self.filename_history)
             data_history.to_csv(self.filename_history, mode='a', sep=',', 
                                 index=False, quotechar="'", header=False)
@@ -269,10 +275,12 @@ class MainWindow(QMainWindow, Ui_ModbusWindow):
         print(t + ' TMMS Network Started')
         self.timer = QTimer()
         self.timer.timeout.connect(self.on_timer)
-        self.timer.start(5000)
+        self.timer.start(2000)
     
     def on_timer(self):
-        # self.rec_nb += 1
+        self.rec_nb += 1
+        if self.rec_nb > 1024:
+            self.rec_nb = 0
         # threading.Thread(target=self.modbus.run_requests).start()
         status = self.modbus.run_requests()
         adress_data = self.modbus.adress_data
