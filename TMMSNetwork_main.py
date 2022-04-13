@@ -30,7 +30,7 @@ class Struct:
 
 class FileManager:
     def __init__(self):
-        self.max_capacity = 100
+        self.max_capacity = 2**16
         self.nof_sensors = 84
         self.run_path = os.getcwd()
         self.folder = os.path.realpath(os.path.join(self.run_path, './data'))
@@ -112,7 +112,7 @@ class FileManager:
         data_history = self.read(self.filename_history)
         if len(data_history) > self.max_capacity:
             # Re-sample History data
-            data_history = data_history.iloc[::2,:]
+            data_history = data_history.iloc[100:,:]
             for i in range(len(data_history)):
                 data_history.iloc[i,0] = '"' + data_history.iloc[i,0] + '"'
             #data_history.replace('NaN', '"NaN"', inplace=True)
@@ -194,7 +194,6 @@ class ModbusCommunication:
             print(t + '[WARNING] Redundant Modbus Client not connected')
         
         # print(self.sensor_data.to_string())
-        print(self.sensor_data)
         te -= time.time()
         # print('Modbus queries elapsed time: ' + str(-te))
         return(status)
@@ -275,7 +274,7 @@ class MainWindow(QMainWindow, Ui_ModbusWindow):
         print(t + ' TMMS Network Started')
         self.timer = QTimer()
         self.timer.timeout.connect(self.on_timer)
-        self.timer.start(2000)
+        self.timer.start(5000)
     
     def on_timer(self):
         self.rec_nb += 1
@@ -358,7 +357,7 @@ if __name__ == "__main__":
                 thm = True
             if arg == "secondary":
                 circuit = 's'
-    display = False
+    display = True
     thm = False
     app = QApplication([])
     win = MainWindow(circuit, thm=thm, display=display)

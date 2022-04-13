@@ -10,12 +10,11 @@ Created on Fri Oct 15 10:44:47 2021
 # log = logging.getLogger()
 # log.setLevel(logging.DEBUG)
 
-
 from pymodbus.server.asynchronous import StartTcpServer, StartSerialServer, StopServer
 from pymodbus.client.sync import ModbusTcpClient, ModbusSerialClient
 from pymodbus.datastore import ModbusSequentialDataBlock, ModbusSparseDataBlock
 from pymodbus.datastore import ModbusSlaveContext, ModbusServerContext
-from twisted.internet.serialport import SerialPort
+# from twisted.internet.serialport import SerialPort
 
 import time
 import sys
