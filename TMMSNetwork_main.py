@@ -24,6 +24,13 @@ import numpy as np
 import pandas as pd
 import time
 
+import logging
+FORMAT = '%(asctime)s %(message)s'
+DATE = '%d-%b-%Y %I:%M:%S'
+# logging.basicConfig(filename="modbus.log",level=logging.DEBUG,format=FORMAT,datefmt=DATE)
+logging.basicConfig(level=logging.DEBUG,format=FORMAT,datefmt=DATE)
+log = logging.getLogger()
+log.setLevel(logging.DEBUG)
 
 class Struct:
     pass
@@ -158,12 +165,12 @@ class ModbusCommunication:
                 name = value.tag.split('_')[0]
                 self.sensor_adresses.loc[self.sensor_adresses.loc[:, 'name'] == name, 'status'] = adress                  
                 self.sensor_adresses.loc[self.sensor_adresses.loc[:, 'name'] == name, 'bit'] = bit
-        # self.main_client = TMMSClientSerial('COM1')
-        # debug
-        if self.circuit == "p":
-            self.main_client = TMMSClientEthernet('localhost', 502)
-        else:
-            self.main_client = TMMSClientEthernet('localhost', 504)
+        self.main_client = TMMSClientSerial('COM1')
+        # # debug
+        # if self.circuit == "p":
+        #     self.main_client = TMMSClientEthernet('localhost', 502)
+        # else:
+        #     self.main_client = TMMSClientEthernet('localhost', 504)
         if red:
             if self.circuit == "p":
                 self.red_server = TMMSServerEthernet('localhost', 506) # "red" : redundancy
