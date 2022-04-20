@@ -125,7 +125,7 @@ class FileManager:
             print(t + ' Data history stored')
 
 class ModbusCommunication:
-    def __init__(self, circuit):
+    def __init__(self, circuit, red):
         self.circuit = circuit
         self.nof_sensors = 84
         self._type_dict = {'int': int,
@@ -159,39 +159,47 @@ class ModbusCommunication:
                 self.sensor_adresses.loc[self.sensor_adresses.loc[:, 'name'] == name, 'status'] = adress                  
                 self.sensor_adresses.loc[self.sensor_adresses.loc[:, 'name'] == name, 'bit'] = bit
         # self.main_client = TMMSClientSerial('COM1')
+        # debug
         if self.circuit == "p":
             self.main_client = TMMSClientEthernet('localhost', 502)
-            self.red_server = TMMSServerEthernet('localhost', 504) # "red" : redundancy
-            self.red_client = TMMSClientEthernet('localhost', 505) # "red" : redundancy
         else:
-            self.main_client = TMMSClientEthernet('localhost', 503)
-            self.red_server = TMMSServerEthernet('localhost', 505) # "red" : redundancy
-            self.red_client = TMMSClientEthernet('localhost', 504) # "red" : redundancy
-        threading.Thread(target=self.red_server.run).start()
+            self.main_client = TMMSClientEthernet('localhost', 504)
+        if red:
+            if self.circuit == "p":
+                self.red_server = TMMSServerEthernet('localhost', 506) # "red" : redundancy
+                self.red_client = TMMSClientEthernet('localhost', 505) # "red" : redundancy
+            else:
+                self.red_server = TMMSServerEthernet('localhost', 505) # "red" : redundancy
+                self.red_client = TMMSClientEthernet('localhost', 506) # "red" : redundancy
+            threading.Thread(target=self.red_server.run).start()
 
-    def run_requests(self):
-        t = time.strftime('[%y-%m-%d %H-%M-%S]')
+    def run_requests(self, red):
         te = time.time()
         status = False
         try:
+            t = time.strftime('[%y-%m-%d %H-%M-%S]')
             self.main_client.connect()
             self.query(self.main_client, circuit)
             status = True
+            print(t + '[INFO] Main Modbus Client data updated')
         except Exception:
             self.sensor_data.loc[self.sensor_data.loc[:, 'circuit'] == self.circuit, 'movement'] = [None] * (self.nof_sensors // 2)
             self.sensor_data.loc[self.sensor_data.loc[:, 'circuit'] == self.circuit, 'status'] = [None] * (self.nof_sensors // 2)
             print(t + '[WARNING] Main Modbus Client not connected')
-        try:
-            self.red_client.connect()
-            if self.circuit == "p":
-                self.query(self.red_client, 's')
-            else:
-                self.query(self.red_client, 'p')
-            status = True
-        except Exception:
-            self.sensor_data.loc[self.sensor_data.loc[:, 'circuit'] != self.circuit, 'movement'] = [None] * (self.nof_sensors // 2)
-            self.sensor_data.loc[self.sensor_data.loc[:, 'circuit'] != self.circuit, 'status'] = [None] * (self.nof_sensors // 2)
-            print(t + '[WARNING] Redundant Modbus Client not connected')
+        if red:
+            try:
+                t = time.strftime('[%y-%m-%d %H-%M-%S]')
+                self.red_client.connect()
+                if self.circuit == "p":
+                    self.query(self.red_client, 's')
+                else:
+                    self.query(self.red_client, 'p')
+                status = True
+                print(t + '[INFO] Redundant Modbus Client data updated')
+            except Exception:
+                self.sensor_data.loc[self.sensor_data.loc[:, 'circuit'] != self.circuit, 'movement'] = [None] * (self.nof_sensors // 2)
+                self.sensor_data.loc[self.sensor_data.loc[:, 'circuit'] != self.circuit, 'status'] = [None] * (self.nof_sensors // 2)
+                print(t + '[WARNING] Redundant Modbus Client not connected')
         
         # print(self.sensor_data.to_string())
         te -= time.time()
@@ -245,18 +253,20 @@ class ModbusCommunication:
             return elem.get('name'), Elem_struct
 
 class MainWindow(QMainWindow, Ui_ModbusWindow):
-    def __init__(self, circuit, thm=True, display=False, parent=None):
+    def __init__(self, circuit, thm=True, display=False, red=True, parent=None):
         super().__init__(parent)
+        self.red = red
         self.circuit = circuit
         self.display = display
         self.rec_nb = 0
         self.setupUi(self)
-        self.modbus = ModbusCommunication(self.circuit)
-        self.modbus.run_requests()
+        self.modbus = ModbusCommunication(self.circuit, self.red)
+        self.modbus.run_requests(self.red)
         self.file_manager = FileManager()
         adress_data = self.modbus.adress_data
         # self.modbus.red_server.update_database(adress_data.loc[adress_data['datatype'] == 'float32'])
-        self.modbus.red_server.update_database(self.modbus.adress_data)
+        if self.red:
+            self.modbus.red_server.update_database(self.modbus.adress_data)
         # self.file_manager.update(data, self.rec_nb, self.circuit)
         self.file_manager.update(self.modbus.sensor_data, self.rec_nb, self.circuit)
         self.refresh_thm = thm
@@ -271,7 +281,6 @@ class MainWindow(QMainWindow, Ui_ModbusWindow):
         self.tableView_1.setModel(self.tableView_1.model)
         self.tableView_2.setModel(self.tableView_2.model)
         t = time.strftime('[%y-%m-%d %H-%M-%S]')
-        print(t + ' TMMS Network Started')
         self.timer = QTimer()
         self.timer.timeout.connect(self.on_timer)
         self.timer.start(5000)
@@ -281,9 +290,10 @@ class MainWindow(QMainWindow, Ui_ModbusWindow):
         if self.rec_nb > 1024:
             self.rec_nb = 0
         # threading.Thread(target=self.modbus.run_requests).start()
-        status = self.modbus.run_requests()
+        status = self.modbus.run_requests(self.red)
         adress_data = self.modbus.adress_data
-        self.modbus.red_server.update_database(self.modbus.adress_data)
+        if self.red:
+            self.modbus.red_server.update_database(self.modbus.adress_data)
         # self.modbus.red_server.update_database(adress_data.loc[adress_data['datatype'] == 'float32'])
         # self.file_manager.update(data, self.rec_nb, self.circuit)
         self.file_manager.update(self.modbus.sensor_data, self.rec_nb, self.circuit)
@@ -292,9 +302,6 @@ class MainWindow(QMainWindow, Ui_ModbusWindow):
             ETL(self.file_manager.folder)
         if self.display:
             self.refresh()
-        if status:
-            t = time.strftime('[%y-%m-%d %H-%M-%S]')
-            print(t + ' Data updated')
 
     def refresh(self):
         # Refresh Tables
@@ -357,10 +364,11 @@ if __name__ == "__main__":
                 thm = True
             if arg == "secondary":
                 circuit = 's'
-    display = True
+    display = False
     thm = False
+    red = False
     app = QApplication([])
-    win = MainWindow(circuit, thm=thm, display=display)
+    win = MainWindow(circuit, thm=thm, display=display, red=red)
     if display:
         win.show()
     app.exec_()
