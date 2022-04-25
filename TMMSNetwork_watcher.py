@@ -25,14 +25,20 @@ if len(sys.argv) > 1:
             redundancy = 'primary'
         elif arg == 'secondary':
             redundancy = 'secondary'
-            
+lagging = False
+if os.path.exists('tmp/time.txt'):
+    with open('tmp/time.txt', 'r') as conf:
+        TMMS_Network_time = float(conf.read())
+        if (t0 - TMMS_Network_time) > 30:
+            lagging = True
+print(lagging)
 running = False
 stopped = True
 PID = None
 # Check if software is stopped or not responding
 # /fi "imagename eq cmd.exe"
-os.system('tasklist /v /fi "imagename eq cmd.exe" /fi "status ne running" /fi "sessionname eq console" /fo "csv" > parameters/tmp/tasklist.txt')
-with open('Parameters/tmp/tasklist.txt', 'r') as task_file:
+os.system('tasklist /v /fi "imagename eq cmd.exe" /fi "status ne running" /fi "sessionname eq console" /fo "csv" > tmp/tasklist.txt')
+with open('tmp/tasklist.txt', 'r') as task_file:
     do_read = True
     for line in task_file.readlines():
         if process_1 in line.split(',')[-1]:
@@ -42,8 +48,8 @@ with open('Parameters/tmp/tasklist.txt', 'r') as task_file:
             stopped = False
             PID = line.split(',')[1]
 # Check if software is running
-os.system('tasklist /v /fi "imagename eq cmd.exe" /fi "status eq running" /fi "sessionname eq console" /fo "csv" > Parameters/tmp/tasklist.txt')
-with open('Parameters/tmp/tasklist.txt', 'r') as task_file:
+os.system('tasklist /v /fi "imagename eq cmd.exe" /fi "status eq running" /fi "sessionname eq console" /fo "csv" > tmp/tasklist.txt')
+with open('tmp/tasklist.txt', 'r') as task_file:
     do_read = True
     for line in task_file.readlines():
         if process_1 in line.split(',')[-1]:
@@ -63,7 +69,7 @@ if stopped:
         os.startfile('TMMS_Network-P.bat')
     else:
         os.startfile('TMMS_Network-S.bat')
-elif not running:
+elif not running or lagging:
     print(time_str + 'Killing TMMS Network Software')
     os.system('taskkill /PID ' + PID)
     print(time_str + 'Restarting TMMS Network Software')
@@ -73,6 +79,43 @@ elif not running:
         os.startfile('TMMS_Network-S.bat')
 else:
     print(time_str + 'TMMS Network Check OK')
+    
+# TMMS Display watcher
+process = 'RTMC Run-time'
+running = False
+stopped = True
+PID = None
+# Check if software is stopped or not responding
+# /fi "imagename eq cmd.exe"
+os.system('tasklist /v /fi "imagename eq RTMC_Run-time.exe" /fi "status ne running" /fi "sessionname eq console" /fo "csv" > tmp/tasklist.txt')
+with open('tmp/tasklist.txt', 'r') as task_file:
+    do_read = True
+    for line in task_file.readlines():
+        if process in line.split(',')[-1]:
+            stopped = False
+            PID = line.split(',')[1]
+# Check if software is running
+os.system('tasklist /v /fi "imagename eq RTMC_Run-time.exe" /fi "status eq running" /fi "sessionname eq console" /fo "csv" > tmp/tasklist.txt')
+with open('tmp/tasklist.txt', 'r') as task_file:
+    do_read = True
+    for line in task_file.readlines():
+        if process in line.split(',')[-1]:
+            running = True
+            stopped = False
+            PID = line.split(',')[1]
+print(PID)
+# Else software is stopped
+time_str = time.strftime('[%Y-%m-%d %H-%M-%S] ')
+if stopped:
+    print(time_str + 'Restarting TMMS Display Software')
+    os.startfile('RTMC\SPCC.rtmc2')
+elif not running:
+    print(time_str + 'Killing TMMS Display Software')
+    os.system('taskkill /PID ' + PID)
+    print(time_str + 'Restarting TMMS Display Software')
+    os.startfile('RTMC\SPCC.rtmc2')
+else:
+    print(time_str + 'TMMS Display Check OK')
         
 print(time.time() - t0)
              

@@ -130,7 +130,7 @@ class TMMSClientSerial(TMMSModbusSerial, TMMSModbusClient):
     def __init__(self, port):
         TMMSModbusSerial.__init__(self, port)
         TMMSModbusClient.__init__(self)
-        self.socket = ModbusSerialClient(port=self.port, stopbits=1, bytesize=8, baudrate=9600, timeout=1)
+        self.socket = ModbusSerialClient(port=self.port, method='rtu', stopbits=1, bytesize=8, baudrate=9600, timeout=1)
         self.socket.connect()
         
     def close(self):

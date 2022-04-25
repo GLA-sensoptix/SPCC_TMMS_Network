@@ -25,19 +25,20 @@ import pandas as pd
 import time
 
 import logging
-FORMAT = '%(asctime)s %(message)s'
-DATE = '%d-%b-%Y %I:%M:%S'
+# FORMAT = '%(asctime)s %(message)s'
+# DATE = '%d-%b-%Y %I:%M:%S'
 # logging.basicConfig(filename="modbus.log",level=logging.DEBUG,format=FORMAT,datefmt=DATE)
-logging.basicConfig(level=logging.DEBUG,format=FORMAT,datefmt=DATE)
-log = logging.getLogger()
-log.setLevel(logging.DEBUG)
+# logging.basicConfig(level=logging.DEBUG,format=FORMAT,datefmt=DATE)
+# log = logging.getLogger()
+# log.setLevel(logging.DEBUG)
 
 class Struct:
     pass
 
 class FileManager:
     def __init__(self):
-        self.max_capacity = 2**16
+        # self.max_capacity = 2**16
+        self.max_capacity = 1000
         self.nof_sensors = 84
         self.run_path = os.getcwd()
         self.folder = os.path.realpath(os.path.join(self.run_path, './data'))
@@ -59,7 +60,7 @@ class FileManager:
             with open(filename, 'w+') as f:
                 f.write(self.header())
         except:
-            print('except')
+            pass
         
     def header(self):
         Tanks = ['702-', '703-']
@@ -91,30 +92,32 @@ class FileManager:
         with open(filename, 'a') as file:
             file.write(dat_str)
       
-    def data_to_str(self, data, rec_nb, circuit):
+    def data_to_str(self, data, rec_nb, circuit, NaN_type='0'):
         
-        def shunt(data):
+        def shunt(data, NaN_type):
             string = ""
             for k in range(self.nof_sensors):
                 if type(data[k]) == type(None):
-                    string += ',"NaN"'
+                    # string += ',"NaN"'
+                    string += ',' + NaN_type
                 else:
                     string += "," + str(data[k])
             return(string)
         
         line = '"' + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + '"'
         line += ',' + str(rec_nb)
-        line += shunt(data.loc[:, 'movement'])
-        line += shunt(data.loc[:, 'status'])
+        line += shunt(data.loc[:, 'movement'], NaN_type)
+        line += shunt(data.loc[:, 'status'], NaN_type)
         line += "\n"
         return(line)
 
     def update(self, data, rec_nb, circuit):
         # Update live and history files
         self.file_creation(self.filename_live)
-        dat_str = self.data_to_str(data, rec_nb, circuit)
-        self.append(self.filename_live, dat_str)
-        self.append(self.filename_history, dat_str)
+        dat_str_live = self.data_to_str(data, rec_nb, circuit, NaN_type='0')
+        self.append(self.filename_live, dat_str_live)
+        dat_str_history = self.data_to_str(data, rec_nb, circuit, NaN_type='"NaN"')
+        self.append(self.filename_history, dat_str_history)
         # Check History file size  'NaN' '"NaN"'
         data_history = self.read(self.filename_history)
         if len(data_history) > self.max_capacity:
@@ -134,6 +137,7 @@ class FileManager:
 class ModbusCommunication:
     def __init__(self, circuit, red):
         self.circuit = circuit
+        self.slave = {'p': 1, 's': 2}[self.circuit]
         self.nof_sensors = 84
         self._type_dict = {'int': int,
                            'str': str}
@@ -165,12 +169,12 @@ class ModbusCommunication:
                 name = value.tag.split('_')[0]
                 self.sensor_adresses.loc[self.sensor_adresses.loc[:, 'name'] == name, 'status'] = adress                  
                 self.sensor_adresses.loc[self.sensor_adresses.loc[:, 'name'] == name, 'bit'] = bit
-        self.main_client = TMMSClientSerial('COM1')
-        # # debug
-        # if self.circuit == "p":
-        #     self.main_client = TMMSClientEthernet('localhost', 502)
-        # else:
-        #     self.main_client = TMMSClientEthernet('localhost', 504)
+        # self.main_client = TMMSClientSerial('COM1')
+        # debug
+        if self.circuit == "p":
+            self.main_client = TMMSClientEthernet('localhost', 502)
+        else:
+            self.main_client = TMMSClientEthernet('localhost', 504)
         if red:
             if self.circuit == "p":
                 self.red_server = TMMSServerEthernet('localhost', 506) # "red" : redundancy
@@ -181,6 +185,12 @@ class ModbusCommunication:
             threading.Thread(target=self.red_server.run).start()
 
     def run_requests(self, red):
+        if self.circuit == 'p':
+            main_circuit = 'Primary'
+            red_circuit = 'Secondary'
+        else:
+            main_circuit = 'Secondary'
+            red_circuit = 'Primary'
         te = time.time()
         status = False
         try:
@@ -188,11 +198,13 @@ class ModbusCommunication:
             self.main_client.connect()
             self.query(self.main_client, circuit)
             status = True
-            print(t + '[INFO] Main Modbus Client data updated')
+            # print(t + '[INFO] Main Modbus Client data updated ({})'.format(main_circuit))
+            print(t + '[INFO] Updating {} \t OK'.format(main_circuit))
         except Exception:
             self.sensor_data.loc[self.sensor_data.loc[:, 'circuit'] == self.circuit, 'movement'] = [None] * (self.nof_sensors // 2)
             self.sensor_data.loc[self.sensor_data.loc[:, 'circuit'] == self.circuit, 'status'] = [None] * (self.nof_sensors // 2)
-            print(t + '[WARNING] Main Modbus Client not connected')
+            # print(t + '[WARNING] Main Modbus Client ({}) not connected'.format(main_circuit))
+            print(t + '[INFO] Updating {} \t FAILED'.format(main_circuit))
         if red:
             try:
                 t = time.strftime('[%y-%m-%d %H-%M-%S]')
@@ -202,11 +214,13 @@ class ModbusCommunication:
                 else:
                     self.query(self.red_client, 'p')
                 status = True
-                print(t + '[INFO] Redundant Modbus Client data updated')
+                # print(t + '[INFO] Redundant Modbus Client data updated ({})'.format(red_circuit))
+                print(t + '[INFO] Updating {} \t OK'.format(red_circuit))
             except Exception:
                 self.sensor_data.loc[self.sensor_data.loc[:, 'circuit'] != self.circuit, 'movement'] = [None] * (self.nof_sensors // 2)
                 self.sensor_data.loc[self.sensor_data.loc[:, 'circuit'] != self.circuit, 'status'] = [None] * (self.nof_sensors // 2)
-                print(t + '[WARNING] Redundant Modbus Client not connected')
+                # print(t + '[WARNING] Redundant Modbus Client ({}) not connected'.format(red_circuit))
+                print(t + '[INFO] Updating {} \t FAILED'.format(red_circuit))
         
         # print(self.sensor_data.to_string())
         te -= time.time()
@@ -219,22 +233,24 @@ class ModbusCommunication:
                 adress = row[1].loc['adress']
                 datatype = row[1].loc['datatype']
                 if datatype == 'float32':
-                    value, status = socket.read(adress, datatype)
+                    value, status = socket.read(adress, datatype, slave=self.slave)
                     name = self.sensor_adresses.loc[self.sensor_adresses.loc[:, 'movement'] == adress, 'name'].iloc[0]
                     if status and value[adress] != None:
                         val = value[adress]
                     else:
+                        raise('Modbus request status error')
                         val = 0
                     self.sensor_data.loc[self.sensor_data.loc[:, 'name'] == name, 'movement'] = val
                     self.adress_data.loc[self.adress_data.loc[:, 'adress'] == adress, 'value'] = str(val)
                 else:
-                    value, status = socket.read(adress, datatype)
+                    value, status = socket.read(adress, datatype, slave=self.slave)
                     names = self.sensor_adresses.loc[self.sensor_adresses.loc[:, 'status'] == adress, 'name']
                     for name in names:
                         bit = int(self.sensor_adresses.loc[self.sensor_adresses.loc[:, 'name'] == name, 'bit'])
                         if status and value[adress] != None:
                             val = value[adress][bit]
                         else:
+                            raise('Modbus request status error')
                             val = 0
                         self.sensor_data.loc[self.sensor_data.loc[:, 'name'] == name, 'status'] = val
                     self.adress_data.loc[self.adress_data.loc[:, 'adress'] == adress, 'value'] = str(value[adress])
@@ -290,7 +306,7 @@ class MainWindow(QMainWindow, Ui_ModbusWindow):
         t = time.strftime('[%y-%m-%d %H-%M-%S]')
         self.timer = QTimer()
         self.timer.timeout.connect(self.on_timer)
-        self.timer.start(5000)
+        self.timer.start(1000)
     
     def on_timer(self):
         self.rec_nb += 1
@@ -309,6 +325,9 @@ class MainWindow(QMainWindow, Ui_ModbusWindow):
             ETL(self.file_manager.folder)
         if self.display:
             self.refresh()
+        # Watcher conf
+        with open('tmp/time.txt', 'w') as f:
+            f.write(str(time.time()))
 
     def refresh(self):
         # Refresh Tables
@@ -371,9 +390,9 @@ if __name__ == "__main__":
                 thm = True
             if arg == "secondary":
                 circuit = 's'
-    display = False
-    thm = False
-    red = False
+    # display = True
+    # thm = False
+    red = True
     app = QApplication([])
     win = MainWindow(circuit, thm=thm, display=display, red=red)
     if display:
