@@ -400,7 +400,7 @@ if __name__ == "__main__":
                 circuit = 's'
     # display = True
     # thm = False
-    debug = True
+    # debug = True
     red = True
     app = QApplication([])
     win = MainWindow(circuit, thm=thm, display=display, red=red, debug=debug)
