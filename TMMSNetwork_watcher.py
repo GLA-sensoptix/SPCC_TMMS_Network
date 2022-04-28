@@ -31,7 +31,7 @@ if os.path.exists('tmp/time.txt'):
         TMMS_Network_time = float(conf.read())
         if (t0 - TMMS_Network_time) > 30:
             lagging = True
-print(lagging)
+print('lagging :' + str(lagging))
 running = False
 stopped = True
 PID = None

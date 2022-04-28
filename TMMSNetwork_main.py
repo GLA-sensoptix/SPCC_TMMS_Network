@@ -135,7 +135,7 @@ class FileManager:
             print(t + ' Data history stored')
 
 class ModbusCommunication:
-    def __init__(self, circuit, red):
+    def __init__(self, circuit, red, debug=False):
         self.circuit = circuit
         self.slave = {'p': 1, 's': 2}[self.circuit]
         self.nof_sensors = 84
@@ -169,20 +169,28 @@ class ModbusCommunication:
                 name = value.tag.split('_')[0]
                 self.sensor_adresses.loc[self.sensor_adresses.loc[:, 'name'] == name, 'status'] = adress                  
                 self.sensor_adresses.loc[self.sensor_adresses.loc[:, 'name'] == name, 'bit'] = bit
-        # self.main_client = TMMSClientSerial('COM1')
-        # debug
-        if self.circuit == "p":
-            self.main_client = TMMSClientEthernet('localhost', 502)
-        else:
-            self.main_client = TMMSClientEthernet('localhost', 504)
-        if red:
+        if debug:
             if self.circuit == "p":
-                self.red_server = TMMSServerEthernet('localhost', 506) # "red" : redundancy
-                self.red_client = TMMSClientEthernet('localhost', 505) # "red" : redundancy
+                self.main_client = TMMSClientEthernet('localhost', 502)
             else:
-                self.red_server = TMMSServerEthernet('localhost', 505) # "red" : redundancy
-                self.red_client = TMMSClientEthernet('localhost', 506) # "red" : redundancy
-            threading.Thread(target=self.red_server.run).start()
+                self.main_client = TMMSClientEthernet('localhost', 504)
+            if red: # "red" : redundancy
+                if self.circuit == "p":
+                    self.red_server = TMMSServerEthernet('localhost', 506)
+                    self.red_client = TMMSClientEthernet('localhost', 505)
+                else:
+                    self.red_server = TMMSServerEthernet('localhost', 505)
+                    self.red_client = TMMSClientEthernet('localhost', 506)
+        else:
+            self.main_client = TMMSClientSerial('COM1')
+            if red:
+                if self.circuit == "p":
+                    self.red_server = TMMSServerEthernet('172.201.8.3', 502)
+                    self.red_client = TMMSClientEthernet('172.201.8.4', 503)
+                else:
+                    self.red_server = TMMSServerEthernet('172.201.8.4', 503)
+                    self.red_client = TMMSClientEthernet('172.201.8.3', 502)
+        threading.Thread(target=self.red_server.run).start()
 
     def run_requests(self, red):
         if self.circuit == 'p':
@@ -204,7 +212,7 @@ class ModbusCommunication:
             self.sensor_data.loc[self.sensor_data.loc[:, 'circuit'] == self.circuit, 'movement'] = [None] * (self.nof_sensors // 2)
             self.sensor_data.loc[self.sensor_data.loc[:, 'circuit'] == self.circuit, 'status'] = [None] * (self.nof_sensors // 2)
             # print(t + '[WARNING] Main Modbus Client ({}) not connected'.format(main_circuit))
-            print(t + '[INFO] Updating {} \t FAILED'.format(main_circuit))
+            print(t + '[INFO] Updating {} \t FAILED -> Check Serial Link'.format(main_circuit))
         if red:
             try:
                 t = time.strftime('[%y-%m-%d %H-%M-%S]')
@@ -220,7 +228,7 @@ class ModbusCommunication:
                 self.sensor_data.loc[self.sensor_data.loc[:, 'circuit'] != self.circuit, 'movement'] = [None] * (self.nof_sensors // 2)
                 self.sensor_data.loc[self.sensor_data.loc[:, 'circuit'] != self.circuit, 'status'] = [None] * (self.nof_sensors // 2)
                 # print(t + '[WARNING] Redundant Modbus Client ({}) not connected'.format(red_circuit))
-                print(t + '[INFO] Updating {} \t FAILED'.format(red_circuit))
+                print(t + '[INFO] Updating {} \t FAILED -> Check Ethernet Link'.format(red_circuit))
         
         # print(self.sensor_data.to_string())
         te -= time.time()
@@ -276,14 +284,14 @@ class ModbusCommunication:
             return elem.get('name'), Elem_struct
 
 class MainWindow(QMainWindow, Ui_ModbusWindow):
-    def __init__(self, circuit, thm=True, display=False, red=True, parent=None):
+    def __init__(self, circuit, thm=True, display=False, red=True, debug=False, parent=None):
         super().__init__(parent)
         self.red = red
         self.circuit = circuit
         self.display = display
         self.rec_nb = 0
         self.setupUi(self)
-        self.modbus = ModbusCommunication(self.circuit, self.red)
+        self.modbus = ModbusCommunication(self.circuit, self.red, debug=debug)
         self.modbus.run_requests(self.red)
         self.file_manager = FileManager()
         adress_data = self.modbus.adress_data
@@ -392,9 +400,10 @@ if __name__ == "__main__":
                 circuit = 's'
     # display = True
     # thm = False
+    debug = True
     red = True
     app = QApplication([])
-    win = MainWindow(circuit, thm=thm, display=display, red=red)
+    win = MainWindow(circuit, thm=thm, display=display, red=red, debug=debug)
     if display:
         win.show()
     app.exec_()
