@@ -36,8 +36,8 @@ class Struct:
 
 class FileManager:
     def __init__(self):
-        # self.max_capacity = 2**16
-        self.max_capacity = 1000
+        self.max_capacity = 2**16
+        # self.max_capacity = 1000
         self.nof_sensors = 84
         self.run_path = os.getcwd()
         self.folder = os.path.realpath(os.path.join(self.run_path, './data'))
