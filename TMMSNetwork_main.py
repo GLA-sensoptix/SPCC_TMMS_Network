@@ -5,7 +5,6 @@ Created on Thu Nov  4 16:09:38 2021
 @author: GLA
 """
 
-
 from PyQt5.QtCore import *
 # from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
@@ -124,7 +123,13 @@ class FileManager:
             # Re-sample History data
             data_history = data_history.iloc[100:,:]
             for i in range(len(data_history)):
-                data_history.iloc[i,0] = '"' + data_history.iloc[i,0] + '"'
+                try:
+                    data_history.iloc[i,0] = '"' + data_history.iloc[i,0] + '"'
+                except:
+                    if i > 0:
+                        data_history.iloc[i,0] = data_history.iloc[i-1,0]
+                    else:
+                        data_history.iloc[i,0] = ""
             #data_history.replace('NaN', '"NaN"', inplace=True)
             data_history.fillna('"NaN"', inplace=True)
             #print(data_history)
@@ -208,6 +213,7 @@ class ModbusCommunication:
             status = True
             # print(t + '[INFO] Main Modbus Client data updated ({})'.format(main_circuit))
             print(t + '[INFO] Updating {} \t OK'.format(main_circuit))
+            # self.sensor_data.to_csv('test.csv')
         except Exception:
             self.sensor_data.loc[self.sensor_data.loc[:, 'circuit'] == self.circuit, 'movement'] = [None] * (self.nof_sensors // 2)
             self.sensor_data.loc[self.sensor_data.loc[:, 'circuit'] == self.circuit, 'status'] = [None] * (self.nof_sensors // 2)
