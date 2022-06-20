@@ -37,6 +37,8 @@ class Struct:
 class FileManager:
     def __init__(self):
         self.max_capacity = 2**16
+        self.history_length = 4 * 24 * 7 * 3600 # seconds
+        self.dt_rec_history = self.max_capacity / self.history_length
         # self.max_capacity = 1000
         self.nof_sensors = 84
         self.run_path = os.getcwd()
@@ -91,7 +93,7 @@ class FileManager:
         with open(filename, 'a') as file:
             file.write(dat_str)
       
-    def data_to_str(self, data, rec_nb, circuit, NaN_type='0'):
+    def data_to_str(self, data, rec_nb, NaN_type='0.0'):
         
         def shunt(data, NaN_type):
             string = ""
@@ -110,14 +112,21 @@ class FileManager:
         line += "\n"
         return(line)
 
-    def update(self, data, rec_nb, circuit):
-        # Update live and history files
+    def update_live(self, data, rec_nb):
+        # Update live file (latest record only)
         self.file_creation(self.filename_live)
-        dat_str_live = self.data_to_str(data, rec_nb, circuit, NaN_type='0')
+        dat_str_live = self.data_to_str(data, rec_nb, NaN_type='0.0')
         self.append(self.filename_live, dat_str_live)
-        dat_str_history = self.data_to_str(data, rec_nb, circuit, NaN_type='"NaN"')
+        
+    def update_history(self, data, rec_nb):
+        # Updage history file, length depends of:
+        #  - Capacity max
+        #  - Number of seconds of history
+        dat_str_history = self.data_to_str(data, rec_nb, NaN_type='"NaN"')
+        # Set Faulty sensors values as NaN
+        dat_str_history.replace('0.0', '"NaN"', inplace=True)
         self.append(self.filename_history, dat_str_history)
-        # Check History file size  'NaN' '"NaN"'
+        # Check History file size
         data_history = self.read(self.filename_history)
         if len(data_history) > self.max_capacity:
             # Re-sample History data
@@ -130,14 +139,15 @@ class FileManager:
                         data_history.iloc[i,0] = data_history.iloc[i-1,0]
                     else:
                         data_history.iloc[i,0] = ""
-            #data_history.replace('NaN', '"NaN"', inplace=True)
+            # Deal with NaN values
+            data_history.replace('0.0', '"NaN"', inplace=True)
             data_history.fillna('"NaN"', inplace=True)
-            #print(data_history)
+            # Re-create file
             self.file_creation(self.filename_history)
             data_history.to_csv(self.filename_history, mode='a', sep=',', 
                                 index=False, quotechar="'", header=False)
-            t = time.strftime('[%y-%m-%d %H-%M-%S]')
-            print(t + ' Data history stored')
+        t = time.strftime('[%y-%m-%d %H-%M-%S]')
+        print(t + ' Data history updated')
 
 class ModbusCommunication:
     def __init__(self, circuit, red, debug=False):
@@ -204,7 +214,7 @@ class ModbusCommunication:
         else:
             main_circuit = 'Secondary'
             red_circuit = 'Primary'
-        te = time.time()
+        # te = time.time()
         status = False
         try:
             t = time.strftime('[%y-%m-%d %H-%M-%S]')
@@ -235,9 +245,8 @@ class ModbusCommunication:
                 self.sensor_data.loc[self.sensor_data.loc[:, 'circuit'] != self.circuit, 'status'] = [None] * (self.nof_sensors // 2)
                 # print(t + '[WARNING] Redundant Modbus Client ({}) not connected'.format(red_circuit))
                 print(t + '[INFO] Updating {} \t FAILED -> Check Ethernet Link'.format(red_circuit))
-        
         # print(self.sensor_data.to_string())
-        te -= time.time()
+        # te -= time.time()
         # print('Modbus queries elapsed time: ' + str(-te))
         return(status)
 
@@ -297,14 +306,12 @@ class MainWindow(QMainWindow, Ui_ModbusWindow):
         self.display = display
         self.rec_nb = 0
         self.setupUi(self)
-        self.modbus = ModbusCommunication(self.circuit, self.red, debug=debug)
+        # self.modbus = ModbusCommunication(self.circuit, self.red, debug=debug)
         self.modbus.run_requests(self.red)
         self.file_manager = FileManager()
         adress_data = self.modbus.adress_data
-        # self.modbus.red_server.update_database(adress_data.loc[adress_data['datatype'] == 'float32'])
         if self.red:
             self.modbus.red_server.update_database(self.modbus.adress_data)
-        # self.file_manager.update(data, self.rec_nb, self.circuit)
         self.file_manager.update(self.modbus.sensor_data, self.rec_nb, self.circuit)
         self.refresh_thm = thm
         # Init tables
@@ -317,31 +324,39 @@ class MainWindow(QMainWindow, Ui_ModbusWindow):
         # self.tableView.reset() # commented 05/11: usefull ?
         self.tableView_1.setModel(self.tableView_1.model)
         self.tableView_2.setModel(self.tableView_2.model)
-        t = time.strftime('[%y-%m-%d %H-%M-%S]')
+        # t = time.strftime('[%y-%m-%d %H-%M-%S]')
+        # Set Internal timer interval
+        self.timer_time = 1000 # ms
+        # Set looping rec_point interval
+        self.rec_nb_history = round(self.file_manager.dt_rec_history / self.timer_time * 1000)
+        # Start insternal timer
+        self.on_timer_callback_finished = True
         self.timer = QTimer()
         self.timer.timeout.connect(self.on_timer)
-        self.timer.start(1000)
+        self.timer.start(self.timer_time)
     
     def on_timer(self):
-        self.rec_nb += 1
-        if self.rec_nb > 1024:
-            self.rec_nb = 0
-        # threading.Thread(target=self.modbus.run_requests).start()
-        status = self.modbus.run_requests(self.red)
-        adress_data = self.modbus.adress_data
-        if self.red:
-            self.modbus.red_server.update_database(self.modbus.adress_data)
-        # self.modbus.red_server.update_database(adress_data.loc[adress_data['datatype'] == 'float32'])
-        # self.file_manager.update(data, self.rec_nb, self.circuit)
-        self.file_manager.update(self.modbus.sensor_data, self.rec_nb, self.circuit)
-        if self.refresh_thm:
-            # threading.Thread(target=ETL, args=(self.file_manager.folder, )).start()
-            ETL(self.file_manager.folder)
-        if self.display:
-            self.refresh()
-        # Watcher conf
-        with open('tmp/time.txt', 'w') as f:
-            f.write(str(time.time()))
+        if self.on_timer_callback_finished:
+            self.rec_nb += 1
+            # Update modbus databases
+            status = self.modbus.run_requests(self.red)
+            adress_data = self.modbus.adress_data
+            if self.red:
+                self.modbus.red_server.update_database(self.modbus.adress_data)
+            # Update data files
+            self.file_manager.update_live(self.modbus.sensor_data, self.rec_nb)
+            if self.rec_nb > self.rec_nb_history:
+                self.rec_nb = 0
+                self.file_manager.update_history(self.modbus.sensor_data, self.rec_nb)
+            # ETL routine (THM database update)
+            if self.refresh_thm:
+                ETL(self.file_manager.folder)
+            # Modbus Table display
+            if self.display:
+                self.refresh()
+            # Watcher conf update
+            with open('tmp/time.txt', 'w') as f:
+                f.write(str(time.time()))
 
     def refresh(self):
         # Refresh Tables
@@ -406,8 +421,8 @@ if __name__ == "__main__":
                 circuit = 's'
     # display = True
     # thm = False
-    debug = False
-    red = True
+    # debug = False
+    # red = True
     app = QApplication([])
     win = MainWindow(circuit, thm=thm, display=display, red=red, debug=debug)
     if display:
