@@ -8,6 +8,10 @@ Created on Wed Apr 13 03:26:20 2022
 import sys
 import os
 import time
+import win32gui, win32con
+
+hide = win32gui.GetForegroundWindow()
+win32gui.ShowWindow(hide, win32con.SW_HIDE)
 
 time.sleep(5)
 
