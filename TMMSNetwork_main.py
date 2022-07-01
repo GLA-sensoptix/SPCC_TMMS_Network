@@ -221,13 +221,11 @@ class ModbusCommunication:
             self.main_client.connect()
             self.query(self.main_client, circuit)
             status = True
-            # print(t + '[INFO] Main Modbus Client data updated ({})'.format(main_circuit))
             print(t + '[INFO] Updating {} \t OK'.format(main_circuit))
-            # self.sensor_data.to_csv('test.csv')
         except Exception:
             self.sensor_data.loc[self.sensor_data.loc[:, 'circuit'] == self.circuit, 'movement'] = [None] * (self.nof_sensors // 2)
             self.sensor_data.loc[self.sensor_data.loc[:, 'circuit'] == self.circuit, 'status'] = [None] * (self.nof_sensors // 2)
-            # print(t + '[WARNING] Main Modbus Client ({}) not connected'.format(main_circuit))
+            self.adress_data.loc[self.sensor_data.loc[:, 'circuit'] == self.circuit, 'value'] = [None] * (self.nof_sensors // 2 + 3)
             print(t + '[INFO] Updating {} \t FAILED -> Check Serial Link'.format(main_circuit))
         if red:
             try:
@@ -238,12 +236,11 @@ class ModbusCommunication:
                 else:
                     self.query(self.red_client, 'p')
                 status = True
-                # print(t + '[INFO] Redundant Modbus Client data updated ({})'.format(red_circuit))
                 print(t + '[INFO] Updating {} \t OK'.format(red_circuit))
             except Exception:
                 self.sensor_data.loc[self.sensor_data.loc[:, 'circuit'] != self.circuit, 'movement'] = [None] * (self.nof_sensors // 2)
                 self.sensor_data.loc[self.sensor_data.loc[:, 'circuit'] != self.circuit, 'status'] = [None] * (self.nof_sensors // 2)
-                # print(t + '[WARNING] Redundant Modbus Client ({}) not connected'.format(red_circuit))
+                self.adress_data.loc[self.sensor_data.loc[:, 'circuit'] != self.circuit, 'value'] = [None] * (self.nof_sensors // 2 + 3)
                 print(t + '[INFO] Updating {} \t FAILED -> Check Ethernet Link'.format(red_circuit))
         # print(self.sensor_data.to_string())
         # te -= time.time()
