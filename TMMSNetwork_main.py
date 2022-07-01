@@ -38,7 +38,7 @@ class FileManager:
     def __init__(self):
         self.max_capacity = 2**16
         self.history_length = 4 * 24 * 7 * 3600 # seconds
-        self.dt_rec_history = self.max_capacity / self.history_length
+        self.dt_rec_history = self.history_length / self.max_capacity
         # self.max_capacity = 1000
         self.nof_sensors = 84
         self.run_path = os.getcwd()
@@ -124,7 +124,7 @@ class FileManager:
         #  - Number of seconds of history
         dat_str_history = self.data_to_str(data, rec_nb, NaN_type='"NaN"')
         # Set Faulty sensors values as NaN
-        dat_str_history.replace('0.0', '"NaN"', inplace=True)
+        dat_str_history.replace('0.0', '"NaN"')
         self.append(self.filename_history, dat_str_history)
         # Check History file size
         data_history = self.read(self.filename_history)
@@ -306,13 +306,13 @@ class MainWindow(QMainWindow, Ui_ModbusWindow):
         self.display = display
         self.rec_nb = 0
         self.setupUi(self)
-        # self.modbus = ModbusCommunication(self.circuit, self.red, debug=debug)
+        self.modbus = ModbusCommunication(self.circuit, self.red, debug=debug)
         self.modbus.run_requests(self.red)
         self.file_manager = FileManager()
         adress_data = self.modbus.adress_data
         if self.red:
             self.modbus.red_server.update_database(self.modbus.adress_data)
-        self.file_manager.update(self.modbus.sensor_data, self.rec_nb, self.circuit)
+        self.file_manager.update_live(self.modbus.sensor_data, self.rec_nb)
         self.refresh_thm = thm
         # Init tables
         header_1 = ['Sensor', 'Movement', 'Status']
@@ -410,6 +410,8 @@ class TableModel(QAbstractTableModel):
 if __name__ == "__main__":
     display = False
     thm = False
+    debug = False
+    red = True
     circuit = 'p'
     if len(sys.argv) > 1:
         for arg in sys.argv[1:]:
