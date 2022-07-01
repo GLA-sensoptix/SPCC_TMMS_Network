@@ -1,5 +1,5 @@
 ﻿echo
-cd C:\Users\laugi\Documents\SPCC_TMMS_Network\Graphs
+cd C:\Users\TMMS_User\Documents\Softwares\SPCC_TMMS_Network\Graphs
 title TMMS Graphs
 cls
 python TMMS_Graphs.py

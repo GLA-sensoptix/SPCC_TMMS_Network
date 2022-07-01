@@ -225,7 +225,11 @@ class ModbusCommunication:
         except Exception:
             self.sensor_data.loc[self.sensor_data.loc[:, 'circuit'] == self.circuit, 'movement'] = [None] * (self.nof_sensors // 2)
             self.sensor_data.loc[self.sensor_data.loc[:, 'circuit'] == self.circuit, 'status'] = [None] * (self.nof_sensors // 2)
-            self.adress_data.loc[self.sensor_data.loc[:, 'circuit'] == self.circuit, 'value'] = [None] * (self.nof_sensors // 2 + 3)
+            cond_1 = self.adress_data.loc[:, 'circuit'] == self.circuit
+            cond_2 = self.adress_data.loc[:, 'datatype'] == 'float32'
+            self.adress_data.loc[cond_1 & cond_2, 'value'] = [0.0] * (self.nof_sensors // 2)
+            for i in range(3):
+                self.adress_data.loc[cond_1 & ~cond_2, 'value'].iloc[i] = [0 for i in range(16)] * 3
             print(t + '[INFO] Updating {} \t FAILED -> Check Serial Link'.format(main_circuit))
         if red:
             try:
@@ -240,7 +244,11 @@ class ModbusCommunication:
             except Exception:
                 self.sensor_data.loc[self.sensor_data.loc[:, 'circuit'] != self.circuit, 'movement'] = [None] * (self.nof_sensors // 2)
                 self.sensor_data.loc[self.sensor_data.loc[:, 'circuit'] != self.circuit, 'status'] = [None] * (self.nof_sensors // 2)
-                self.adress_data.loc[self.sensor_data.loc[:, 'circuit'] != self.circuit, 'value'] = [None] * (self.nof_sensors // 2 + 3)
+                cond_1 = self.adress_data.loc[:, 'circuit'] != self.circuit
+                cond_2 = self.adress_data.loc[:, 'datatype'] == 'float32'
+                self.adress_data.loc[cond_1 & cond_2, 'value'] = [0.0] * (self.nof_sensors // 2)
+                for i in range(3):
+                    self.adress_data.loc[cond_1 & ~cond_2, 'value'].iloc[i] = [0 for i in range(16)] * 3
                 print(t + '[INFO] Updating {} \t FAILED -> Check Ethernet Link'.format(red_circuit))
         # print(self.sensor_data.to_string())
         # te -= time.time()
@@ -420,7 +428,7 @@ if __name__ == "__main__":
                 circuit = 's'
     # display = True
     # thm = False
-    # debug = False
+    debug = True
     # red = True
     app = QApplication([])
     win = MainWindow(circuit, thm=thm, display=display, red=red, debug=debug)
